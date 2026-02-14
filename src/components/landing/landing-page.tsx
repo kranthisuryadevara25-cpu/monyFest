@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import * as React from 'react';
+import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Store, Users, TrendingUp, Shield, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+
+const fadeInUp = { initial: { opacity: 0, y: 24 }, animate: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
+const stagger = { animate: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } };
+const fadeInUpView = { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-30px' }, transition: { duration: 0.4 } };
 
 const navLinks = [
   { href: '#features', label: 'Features' },
@@ -67,16 +72,37 @@ const FAQ_ITEMS = [
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0a0614] text-white overflow-x-hidden">
-      {/* Ambient gradient orbs / shades (tawai-style) */}
+      {/* Ambient gradient orbs with subtle float */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[40%] -left-[20%] w-[90%] h-[90%] rounded-full bg-violet-600/25 blur-[140px]" />
-        <div className="absolute top-[10%] -right-[25%] w-[75%] h-[75%] rounded-full bg-fuchsia-600/20 blur-[120px]" />
-        <div className="absolute -bottom-[20%] left-[5%] w-[65%] h-[65%] rounded-full bg-cyan-500/15 blur-[100px]" />
-        <div className="absolute top-[50%] left-[50%] w-[50%] h-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/10 blur-[90px]" />
+        <motion.div
+          className="absolute -top-[40%] -left-[20%] w-[90%] h-[90%] rounded-full bg-violet-600/25 blur-[140px]"
+          animate={{ x: [0, 15, 0], y: [0, -10, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute top-[10%] -right-[25%] w-[75%] h-[75%] rounded-full bg-fuchsia-600/20 blur-[120px]"
+          animate={{ x: [0, -12, 0], y: [0, 8, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute -bottom-[20%] left-[5%] w-[65%] h-[65%] rounded-full bg-cyan-500/15 blur-[100px]"
+          animate={{ x: [0, 8, 0], y: [0, 12, 0] }}
+          transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute top-[50%] left-[50%] w-[50%] h-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/10 blur-[90px]"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 border-b border-white/5 backdrop-blur-sm">
+      <motion.header
+        className="relative z-10 border-b border-white/5 backdrop-blur-sm"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <MonyFestLogo variant="header" className="flex-shrink-0" />
 
@@ -110,23 +136,39 @@ export function LandingPage() {
             </Button>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Hero */}
       <section className="relative z-10 px-4 pt-20 pb-28 sm:px-6 sm:pt-28 sm:pb-36 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm text-white/90 backdrop-blur-sm mb-8">
+        <motion.div
+          className="mx-auto max-w-4xl text-center"
+          initial="initial"
+          animate="animate"
+          variants={stagger}
+        >
+          <motion.div
+            variants={fadeInUp}
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm text-white/90 backdrop-blur-sm mb-8"
+          >
             <Sparkles className="h-4 w-4 text-cyan-400" />
             <span>Loyalty & rewards, reimagined</span>
-          </div>
+          </motion.div>
 
-          <MonyFestLogo variant="hero" linkToHome={false} />
+          <motion.div variants={fadeInUp}>
+            <MonyFestLogo variant="hero" linkToHome={false} />
+          </motion.div>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/70 sm:text-xl">
+          <motion.p
+            variants={fadeInUp}
+            className="mx-auto mt-6 max-w-2xl text-lg text-white/70 sm:text-xl"
+          >
             One platform for members, merchants, and agents. Earn points, run campaigns, and grow with a modern loyalty ecosystem built for scale.
-          </p>
+          </motion.p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <motion.div
+            variants={fadeInUp}
+            className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          >
             <Button
               size="lg"
               className={cn(
@@ -148,21 +190,27 @@ export function LandingPage() {
             >
               <Link href="#features">See how it works</Link>
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Features */}
       <section id="features" className="relative z-10 border-t border-white/5 py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.5 }}
+          >
             <h2 className="font-headline text-3xl font-bold text-white sm:text-4xl">
               Everything you need to grow loyalty
             </h2>
             <p className="mt-4 text-lg text-white/70 max-w-2xl mx-auto">
               For members, merchants, and agents — one seamless platform.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -190,12 +238,17 @@ export function LandingPage() {
                 description: 'Dashboards, payouts, and loyalty analytics in one place.',
                 gradient: 'from-rose-500/20 to-violet-500/20',
               },
-            ].map((item) => (
-              <div
+            ].map((item, i) => (
+              <motion.div
                 key={item.title}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
                 className={cn(
                   'group rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm',
-                  'hover:border-white/20 hover:bg-white/[0.08] transition-all duration-300'
+                  'hover:border-white/20 hover:bg-white/[0.08] transition-colors duration-300'
                 )}
               >
                 <div className={cn('mb-4 inline-flex rounded-xl bg-gradient-to-br p-3', item.gradient)}>
@@ -203,7 +256,7 @@ export function LandingPage() {
                 </div>
                 <h3 className="font-headline text-lg font-semibold text-white">{item.title}</h3>
                 <p className="mt-2 text-sm text-white/70">{item.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -212,24 +265,35 @@ export function LandingPage() {
       {/* How it works */}
       <section id="how-it-works" className="relative z-10 border-t border-white/5 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="font-headline text-2xl font-bold text-white sm:text-3xl">How it works</h2>
-          <p className="mt-2 text-white/70">Sign up, choose your role, and start in minutes.</p>
+          <motion.h2
+            className="font-headline text-2xl font-bold text-white sm:text-3xl"
+            {...fadeInUpView}
+          >
+            How it works
+          </motion.h2>
+          <motion.p className="mt-2 text-white/70" {...fadeInUpView}>
+            Sign up, choose your role, and start in minutes.
+          </motion.p>
           <div className="mt-10 grid gap-8 sm:grid-cols-3 text-left">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <span className="text-2xl font-headline font-bold text-violet-400">1</span>
-              <h3 className="mt-2 font-headline font-semibold text-white">Create an account</h3>
-              <p className="mt-1 text-sm text-white/70">Sign up as a member, merchant, or agent.</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <span className="text-2xl font-headline font-bold text-fuchsia-400">2</span>
-              <h3 className="mt-2 font-headline font-semibold text-white">Get started</h3>
-              <p className="mt-1 text-sm text-white/70">Onboard and connect your business or profile.</p>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-6">
-              <span className="text-2xl font-headline font-bold text-cyan-400">3</span>
-              <h3 className="mt-2 font-headline font-semibold text-white">Earn & grow</h3>
-              <p className="mt-1 text-sm text-white/70">Run campaigns, refer others, and track rewards.</p>
-            </div>
+            {[
+              { num: '1', color: 'text-violet-400', title: 'Create an account', desc: 'Sign up as a member, merchant, or agent.' },
+              { num: '2', color: 'text-fuchsia-400', title: 'Get started', desc: 'Onboard and connect your business or profile.' },
+              { num: '3', color: 'text-cyan-400', title: 'Earn & grow', desc: 'Run campaigns, refer others, and track rewards.' },
+            ].map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                className="rounded-xl border border-white/10 bg-white/5 p-6"
+              >
+                <span className={cn('text-2xl font-headline font-bold', step.color)}>{step.num}</span>
+                <h3 className="mt-2 font-headline font-semibold text-white">{step.title}</h3>
+                <p className="mt-1 text-sm text-white/70">{step.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -237,8 +301,21 @@ export function LandingPage() {
       {/* For business CTA strip */}
       <section id="for-business" className="relative z-10 border-t border-white/5 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 p-8 sm:p-12 backdrop-blur-sm">
-            <Shield className="mx-auto h-12 w-12 text-cyan-400" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.5 }}
+            className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 p-8 sm:p-12 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            >
+              <Shield className="mx-auto h-12 w-12 text-cyan-400" />
+            </motion.div>
             <h2 className="font-headline mt-4 text-2xl font-bold text-white sm:text-3xl">
               Ready to get started?
             </h2>
@@ -260,40 +337,52 @@ export function LandingPage() {
                 </Link>
               </Button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQs */}
       <section id="faqs" className="relative z-10 border-t border-white/5 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-30px' }}
+            transition={{ duration: 0.4 }}
+          >
             <div className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm text-white/90 backdrop-blur-sm mb-4">
               <HelpCircle className="h-4 w-4 text-cyan-400" />
               <span>Got questions?</span>
             </div>
             <h2 className="font-headline text-2xl font-bold text-white sm:text-3xl">Frequently asked questions</h2>
             <p className="mt-2 text-white/70">Quick answers about MonyFest, rewards, and how to get started.</p>
-          </div>
+          </motion.div>
 
           <Accordion type="single" collapsible className="w-full space-y-2">
             {FAQ_ITEMS.map((item, index) => (
-              <AccordionItem
+              <motion.div
                 key={index}
-                value={`faq-${index}`}
-                className={cn(
-                  'faq-item-animate border border-white/10 rounded-xl bg-white/5 px-4 backdrop-blur-sm overflow-hidden',
-                  'hover:border-white/20 hover:bg-white/[0.08] transition-all duration-300'
-                )}
-                style={{ animationDelay: `${index * 60}ms`, opacity: 0 }}
+                initial={{ opacity: 0, x: -12 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-10px' }}
+                transition={{ duration: 0.35, delay: index * 0.04 }}
               >
-                <AccordionTrigger className="text-left text-white py-5 font-headline font-semibold hover:no-underline hover:text-white/90 [&[data-state=open]]:text-white">
-                  {item.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-white/70 text-sm sm:text-base leading-relaxed pb-5 pt-0">
-                  {item.a}
-                </AccordionContent>
-              </AccordionItem>
+                <AccordionItem
+                  value={`faq-${index}`}
+                  className={cn(
+                    'border border-white/10 rounded-xl bg-white/5 px-4 backdrop-blur-sm overflow-hidden',
+                    'hover:border-white/20 hover:bg-white/[0.08] transition-colors duration-300'
+                  )}
+                >
+                  <AccordionTrigger className="text-left text-white py-5 font-headline font-semibold hover:no-underline hover:text-white/90 [&[data-state=open]]:text-white">
+                    {item.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-white/70 text-sm sm:text-base leading-relaxed pb-5 pt-0">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              </motion.div>
             ))}
           </Accordion>
         </div>
@@ -301,13 +390,19 @@ export function LandingPage() {
 
       {/* About */}
       <section id="about" className="relative z-10 border-t border-white/5 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+        <motion.div
+          className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5 }}
+        >
           <h2 className="font-headline text-2xl font-bold text-white sm:text-3xl">About MonyFest</h2>
           <p className="mt-4 text-white/70 leading-relaxed">
-            A production-ready loyalty platform that brings together members, merchants, and agents. 
+            A production-ready loyalty platform that brings together members, merchants, and agents.
             We help businesses reward customers, grow referrals, and run campaigns — all in one modern ecosystem.
           </p>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
