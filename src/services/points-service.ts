@@ -15,6 +15,7 @@ import { createTransaction } from './transaction-service';
 import { getMerchantById } from './merchant-service';
 import { getSlabPointsForPurchase } from './loyalty-slab-service';
 import { getSlabCategoryKey } from '@/lib/loyalty-slabs';
+import { creditBoostForPurchase } from './boost-service';
 
 const DEFAULT_LOYALTY_POINTS_PER_OFFER = 10;
 
@@ -79,6 +80,9 @@ export async function recordPurchaseFromGateway(
     merchantId,
     description: 'In-store payment (PhonePe)',
   });
+  if (merchantId) {
+    await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
+  }
   return {
     success: true,
     purchaseTransactionId: purchaseId,
@@ -130,6 +134,9 @@ export async function recordPurchase(
       quantity,
       description: `Purchase: ${offer.title} x${quantity}`,
     });
+    if (merchantId) {
+      await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
+    }
     return {
       success: true,
       purchaseTransactionId: purchaseId,
@@ -148,6 +155,9 @@ export async function recordPurchase(
     quantity,
     description: `Purchase: ${offer.title} x${quantity}`,
   });
+  if (merchantId) {
+    await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
+  }
 
   const alloc = await allocatePointsOnPurchase({
     buyerId: userId,

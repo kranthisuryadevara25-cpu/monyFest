@@ -2,66 +2,61 @@
 'use client';
 import * as React from 'react';
 import { Header } from '@/components/layout/header';
+import { MonyFestWordmark } from '@/components/MonyFestLogo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileDown, CheckCircle, Wallet, BadgePercent, IndianRupee } from 'lucide-react';
+import { FileDown, CheckCircle, BadgePercent } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import type { Transaction, User, Merchant } from '@/lib/types';
+import type { Merchant } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getTransactions } from '@/services/transaction-service';
 import { useAuth } from '@/lib/auth';
 import { getUserById } from '@/services/user-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getMerchants } from '@/services/merchant-service';
 import { Progress } from '@/components/ui/progress';
-
-type BoostTransaction = {
-    id: string;
-    amount: number;
-    orderId: string;
-    customerId: string;
-    timestamp: Date;
-    status: 'credited' | 'withdrawn';
-};
-
-const mockBoostTransactions: BoostTransaction[] = [
-    { id: 'btx-01', amount: 2.00, orderId: 'ORD12345', customerId: 'member-user-ramu', timestamp: new Date(), status: 'credited' },
-    { id: 'btx-02', amount: 3.50, orderId: 'ORD12346', customerId: 'member-user-bharath', timestamp: new Date('2024-05-27T10:00:00Z'), status: 'credited' },
-    { id: 'btx-03', amount: 1.75, orderId: 'ORD12347', customerId: 'member-user-shathrugna', timestamp: new Date('2024-05-26T14:30:00Z'), status: 'credited' },
-];
-
+import { getBoostSettings, createBoostWithdrawalRequest, getBoostTransactionsForMerchant } from '@/services/boost-service';
 
 export default function BoostEarningsPage() {
     const { toast } = useToast();
     const { user: authUser } = useAuth();
     const [merchant, setMerchant] = React.useState<Merchant | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [minThreshold, setMinThreshold] = React.useState(555);
+    const [boostTransactions, setBoostTransactions] = React.useState<Array<{ id: string; amount: number; type: 'credit' | 'withdrawal'; sourceId?: string; createdAt: Date }>>([]);
+    const [withdrawing, setWithdrawing] = React.useState(false);
 
-    React.useEffect(() => {
-        if (authUser) {
-            setLoading(true);
-            Promise.all([
-                getUserById(authUser.uid),
-                getMerchants()
-            ]).then(([user, allMerchants]) => {
-                if (user && user.merchantId) {
-                    const currentMerchant = allMerchants.find(m => m.merchantId === user.merchantId);
-                    setMerchant(currentMerchant || null);
+    const loadData = React.useCallback(() => {
+        if (!authUser) return;
+        setLoading(true);
+        Promise.all([
+            getUserById(authUser.uid),
+            getMerchants(),
+            getBoostSettings(),
+        ]).then(([user, allMerchants, boostSettings]) => {
+            if (user && user.merchantId) {
+                const currentMerchant = allMerchants.find(m => m.merchantId === user.merchantId);
+                setMerchant(currentMerchant || null);
+                setMinThreshold(boostSettings.minRedemptionThreshold);
+                if (currentMerchant) {
+                    getBoostTransactionsForMerchant(currentMerchant.merchantId).then(setBoostTransactions);
                 }
-                setLoading(false);
-            });
-        }
+            }
+            setLoading(false);
+        });
     }, [authUser]);
 
-    const minThreshold = 555;
-    const boostBalance = merchant?.boostBalance || 0;
-    const isWithdrawalUnlocked = boostBalance >= minThreshold;
-    const progress = (boostBalance / minThreshold) * 100;
+    React.useEffect(() => {
+        loadData();
+    }, [loadData]);
 
-    const handleRequestWithdrawal = () => {
-        if (!isWithdrawalUnlocked) {
+    const boostBalance = merchant?.boostBalance ?? 0;
+    const isWithdrawalUnlocked = boostBalance >= minThreshold;
+    const progress = minThreshold > 0 ? Math.min(100, (boostBalance / minThreshold) * 100) : 100;
+
+    const handleRequestWithdrawal = async () => {
+        if (!merchant || !isWithdrawalUnlocked) {
             toast({
                 variant: 'destructive',
                 title: 'Threshold Not Met',
@@ -69,11 +64,22 @@ export default function BoostEarningsPage() {
             });
             return;
         }
-
-        toast({
-            title: 'Withdrawal Requested',
-            description: `Your request to withdraw ₹${boostBalance.toFixed(2)} has been sent for approval.`,
-        });
+        setWithdrawing(true);
+        const result = await createBoostWithdrawalRequest(merchant.merchantId);
+        setWithdrawing(false);
+        if (result.success) {
+            toast({
+                title: 'Withdrawal Requested',
+                description: `Your request to withdraw ₹${boostBalance.toFixed(2)} has been submitted.${result.withdrawalId ? ' It may be auto-approved or reviewed by admin.' : ''}`,
+            });
+            loadData();
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Withdrawal Failed',
+                description: result.error,
+            });
+        }
     };
     
     if (loading) {
@@ -115,7 +121,7 @@ export default function BoostEarningsPage() {
             <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <CardTitle className="flex items-center gap-2"><BadgePercent /> LoyaltyLeap Boost Balance</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><BadgePercent /> <MonyFestWordmark className="text-base" onLightBackground /> Boost Balance</CardTitle>
                         <CardDescription>Your extra earnings from the Merchant Boost Program.</CardDescription>
                     </div>
                     <div className="text-left md:text-right">
@@ -129,8 +135,8 @@ export default function BoostEarningsPage() {
                         You need ₹{(minThreshold - boostBalance).toFixed(2)} more to unlock withdrawal.
                     </p>
                     <Progress value={progress} />
-                     <Button className="mt-4 w-full md:w-auto" onClick={handleRequestWithdrawal} disabled={!isWithdrawalUnlocked}>
-                        Withdraw Boost Earnings
+                     <Button className="mt-4 w-full md:w-auto" onClick={handleRequestWithdrawal} disabled={!isWithdrawalUnlocked || withdrawing}>
+                        {withdrawing ? 'Submitting...' : 'Withdraw Boost Earnings'}
                      </Button>
                 </div>
             </CardContent>
@@ -153,29 +159,29 @@ export default function BoostEarningsPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Amount</TableHead>
-                        <TableHead>Original Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date Credited</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Source ID</TableHead>
+                        <TableHead>Date</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {mockBoostTransactions.length > 0 ? mockBoostTransactions.map(tx => (
+                    {boostTransactions.length > 0 ? boostTransactions.map(tx => (
                          <TableRow key={tx.id}>
-                            <TableCell className="font-medium text-green-600">+ ₹{tx.amount.toFixed(2)}</TableCell>
-                            <TableCell className="font-mono text-xs">{tx.orderId}</TableCell>
-                            <TableCell>{tx.customerId}</TableCell>
+                            <TableCell className={`font-medium ${tx.amount >= 0 ? 'text-green-600' : 'text-amber-600'}`}>
+                                {tx.amount >= 0 ? '+' : ''}₹{tx.amount.toFixed(2)}
+                            </TableCell>
                             <TableCell>
-                                <Badge variant={'secondary'} className="capitalize">
-                                   <CheckCircle className="mr-1 h-3 w-3" />
-                                   {tx.status}
+                                <Badge variant={tx.type === 'credit' ? 'secondary' : 'outline'} className="capitalize">
+                                   {tx.type === 'credit' ? <CheckCircle className="mr-1 h-3 w-3" /> : null}
+                                   {tx.type}
                                 </Badge>
                             </TableCell>
-                            <TableCell>{format(tx.timestamp, 'PPpp')}</TableCell>
+                            <TableCell className="font-mono text-xs">{tx.sourceId ?? '—'}</TableCell>
+                            <TableCell>{format(tx.createdAt, 'PPpp')}</TableCell>
                         </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={5} className="text-center h-24">
+                            <TableCell colSpan={4} className="text-center h-24">
                                 No boost transactions found.
                             </TableCell>
                         </TableRow>

@@ -1,6 +1,6 @@
 # Firestore Security Rules — Full Reference
 
-This document describes the Firestore collections used by LoyaltyLeap and how the rules in `firestore.rules` support **Admin**, **Agent**, **Merchant**, and **Member** panels.
+This document describes the Firestore collections used by MonyFest and how the rules in `firestore.rules` support **Admin**, **Agent**, **Merchant**, and **Member** panels.
 
 ## Why permission errors happen
 

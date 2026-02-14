@@ -9,7 +9,7 @@ export const mockUsers: User[] = [
   {
     uid: 'super-admin-01',
     name: 'Admin',
-    email: 'admin@loyaltyleap.com',
+    email: 'admin@monyfest.club',
     role: 'superAdmin',
     status: 'approved',
     walletBalance: 0,

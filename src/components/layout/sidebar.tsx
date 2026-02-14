@@ -12,13 +12,13 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
 } from '@/components/ui/sidebar';
+import { MonyFestLogo } from '@/components/MonyFestLogo';
 import {
   LayoutDashboard,
   Users,
   Building,
   Wallet,
   Settings,
-  Zap,
   Percent,
   GitBranch,
   ShoppingCart,
@@ -60,6 +60,7 @@ const financialItems = [
   { href: '/admin/payouts', label: 'Payouts', icon: Wallet },
   { href: '/admin/commission-management', label: 'Commissions', icon: Percent },
   { href: '/admin/merchant-boost', label: 'Merchant Boost', icon: BadgePercent },
+  { href: '/admin/boost-withdrawals', label: 'Boost Withdrawals', icon: Wallet },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
 ]
 
@@ -94,15 +95,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500">
-            <Zap className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-headline font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">Loyalty</span>
-            <span className="text-white">Leap</span>
-          </span>
-        </Link>
+        <MonyFestLogo variant="sidebar" />
       </SidebarHeader>
 
       <SidebarContent>

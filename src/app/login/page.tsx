@@ -5,7 +5,8 @@ import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Zap, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
+import { MonyFestLogo } from '@/components/MonyFestLogo';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail, sendPasswordReset, FIREBASE_NOT_CONFIGURED_MSG } from '@/lib/auth';
 import { isFirebaseConfigured } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -192,7 +193,7 @@ function SignUpForm() {
             if (user) {
                 toast({
                     title: 'Account Created',
-                    description: 'Welcome to LoyaltyLeap!',
+                    description: 'Welcome to MonyFest!',
                 });
                 // Route based on role
                 if (role === 'agent') {
@@ -304,9 +305,8 @@ export default function LoginPage() {
           </Alert>
         )}
         <CardHeader className="text-center">
-          <div className="flex justify-center items-center gap-2 mb-4">
-            <Zap className="h-8 w-8 text-violet-400" />
-            <h1 className="text-3xl font-headline font-bold bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">LoyaltyLeap</h1>
+          <div className="flex justify-center mb-4">
+            <MonyFestLogo variant="login" linkToHome={false} />
           </div>
           <CardTitle className="text-white">Welcome</CardTitle>
           <CardDescription className="text-white/70">Sign in or create an account to continue.</CardDescription>

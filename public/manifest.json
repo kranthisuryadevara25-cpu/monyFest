@@ -1,7 +1,7 @@
 {
-  "name": "LoyaltyLeap",
-  "short_name": "LoyaltyLeap",
-  "description": "Earn more. Engage smarter. Loyalty that leaps. One platform for members, merchants, and agents.",
+  "name": "MonyFest",
+  "short_name": "MonyFest",
+  "description": "Earn-Grow-Prosper. One platform for members, merchants, and agents.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

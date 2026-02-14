@@ -74,6 +74,27 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // -------------------------------------------------------------------------
+    // boostSettings — Admin (Merchant Boost config)
+    // -------------------------------------------------------------------------
+    match /boostSettings/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // boostWithdrawals — Admin (list/approve/reject), Merchant (create via server)
+    // -------------------------------------------------------------------------
+    match /boostWithdrawals/{withdrawalId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // boostTransactions — Audit log for Boost credits/withdrawals
+    // -------------------------------------------------------------------------
+    match /boostTransactions/{txId} {
+      allow read, write: if request.auth != null;
+    }
+
     // Default: deny any other collection not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

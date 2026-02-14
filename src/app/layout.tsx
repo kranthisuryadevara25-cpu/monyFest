@@ -28,13 +28,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'LoyaltyLeap — Earn More. Engage Smarter. Loyalty That Leaps.',
+  title: 'MonyFest — Earn-Grow-Prosper',
   description: 'One platform for members, merchants, and agents. Earn points, run campaigns, and grow with a modern loyalty ecosystem built for scale.',
+  metadataBase: new URL('https://monyfest.club'),
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'LoyaltyLeap',
+    title: 'MonyFest',
   },
   icons: {
     apple: '/icons/apple-touch-icon.png',

@@ -107,7 +107,7 @@ body {
   }
 }
 
-/* Landing: animated gradient text (Engage Smarter / Loyalty That Leaps) */
+/* Landing: animated gradient text */
 @keyframes gradient-shift {
   0%, 100% {
     background-position: 0% 50%;
@@ -120,6 +120,21 @@ body {
 .landing-gradient-text {
   background-size: 200% 200%;
   animation: gradient-shift 5s ease-in-out infinite;
+}
+
+/* FAQ section: staggered fade-in */
+@keyframes faq-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.faq-item-animate {
+  animation: faq-fade-in 0.5s ease-out forwards;
 }
 
 /* App theme: same dark UI as landing for admin/agent/merchant/member */

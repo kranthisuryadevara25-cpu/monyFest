@@ -121,6 +121,28 @@ export interface CommissionSettings {
   loyaltyPointsSharePctGrandparent: number;
 }
 
+/** Merchant Boost program config (admin settings). Amounts in rupees. */
+export interface BoostSettings {
+  boostEnabled: boolean;
+  boostPercentage: number;
+  applyOn: 'gross' | 'final';
+  minRedemptionThreshold: number; // rupees
+  autoApproveThreshold: number;   // rupees; 0 = disabled
+  updatedAt?: Date;
+}
+
+/** A Boost withdrawal request from a merchant. */
+export interface BoostWithdrawal {
+  id: string;
+  merchantId: string;
+  amount: number; // rupees
+  status: 'pending' | 'completed' | 'rejected';
+  createdAt: Date;
+  reviewedAt?: Date;
+  reviewedBy?: string;
+  note?: string;
+}
+
 /** Single slab: order value in this range earns fixed points. */
 export interface LoyaltySlab {
   minAmountPaise: number;

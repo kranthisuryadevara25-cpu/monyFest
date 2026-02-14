@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -16,57 +15,61 @@ import { Label } from '@/components/ui/label';
 import {
   Percent,
   Save,
-  Building,
   BadgePercent,
   IndianRupee,
-  ToggleLeft,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { getBoostSettings, updateBoostSettings } from '@/services/boost-service';
+import type { BoostSettings } from '@/lib/types';
 
-// In a real app, these values would be fetched from a config document in Firestore.
-const initialSettings = {
+const defaultSettings: BoostSettings = {
   boostEnabled: true,
   boostPercentage: 2,
-  applyOn: 'gross', // 'gross' or 'final'
+  applyOn: 'gross',
   minRedemptionThreshold: 555,
-  autoApproveThreshold: 0, // 0 means disabled
+  autoApproveThreshold: 0,
 };
 
 export default function MerchantBoostSettingsPage() {
   const { toast } = useToast();
-  const [settings, setSettings] = React.useState(initialSettings);
+  const [settings, setSettings] = React.useState<BoostSettings>(defaultSettings);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    getBoostSettings().then((s) => {
+      setSettings(s);
+      setIsLoading(false);
+    });
+  }, []);
 
   const handleInputChange = (
-    key: keyof typeof settings,
+    key: keyof BoostSettings,
     value: string | number | boolean
   ) => {
+    if (key === 'updatedAt') return;
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    // In a real app, you would make an API call here to save all settings.
-    // For example: await updatePlatformConfig({ merchantBoost: settings });
-    console.log('Saving new Merchant Boost settings:', settings);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setIsSaving(false);
-    toast({
-      title: 'Success!',
-      description: 'Merchant Boost settings have been updated successfully.',
-    });
+    try {
+      await updateBoostSettings(settings);
+      toast({
+        title: 'Success!',
+        description: 'Merchant Boost settings have been updated successfully.',
+      });
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: e instanceof Error ? e.message : 'Failed to save settings.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -190,7 +193,7 @@ export default function MerchantBoostSettingsPage() {
 
             <Button
               onClick={handleSaveChanges}
-              disabled={isSaving}
+              disabled={isSaving || isLoading}
               className="w-full md:w-auto"
             >
               <Save className="mr-2 h-4 w-4" />

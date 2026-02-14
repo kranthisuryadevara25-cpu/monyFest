@@ -1,8 +1,8 @@
-# LoyaltyLeap — Total Feature Document & KT (Knowledge Transfer)
+# MonyFest — Total Feature Document & KT (Knowledge Transfer)
 
 ## 1. Overview
 
-**LoyaltyLeap** is a production-ready loyalty platform with role-based panels: **Admin**, **Agent**, **Merchant**, and **Member**. The app is built with **Next.js 15**, **Firebase** (Auth + Firestore), and **Tailwind/shadcn UI**.
+**MonyFest** is a production-ready loyalty platform with role-based panels: **Admin**, **Agent**, **Merchant**, and **Member**. The app is built with **Next.js 15**, **Firebase** (Auth + Firestore), and **Tailwind/shadcn UI**.
 
 - **Entry:** Root `/` redirects to `/admin/dashboard`. After login, users are sent to the dashboard for their role.
 - **Roles:** `superAdmin` → Admin panel | `agent` → Agent panel | `merchant` → Merchant panel | `member` → Member panel.

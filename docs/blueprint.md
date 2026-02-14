@@ -1,4 +1,4 @@
-# **App Name**: LoyaltyLeap
+# **App Name**: MonyFest
 
 ## Core Features:
 

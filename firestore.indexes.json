@@ -24,6 +24,14 @@
         { "fieldPath": "role", "order": "ASCENDING" },
         { "fieldPath": "agentCode", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "boostTransactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "merchantId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

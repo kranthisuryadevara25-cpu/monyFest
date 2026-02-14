@@ -27,6 +27,7 @@ import {
   BadgePercent,
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
+import { MonyFestWordmark } from '@/components/MonyFestLogo';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { Offer, Transaction, User, Merchant, MerchantDashboardData } from '@/lib/types';
@@ -117,7 +118,7 @@ export default function MerchantDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>
-              <h2 className="text-sm font-medium">LoyaltyLeap Boost Balance</h2>
+              <h2 className="text-sm font-medium"><MonyFestWordmark className="text-sm" onLightBackground /> Boost Balance</h2>
             </CardTitle>
             <BadgePercent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>

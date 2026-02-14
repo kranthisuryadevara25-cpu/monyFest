@@ -1,6 +1,7 @@
 
 "use client";
 
+import { MonyFestLogo } from '@/components/MonyFestLogo';
 import {
   Sidebar,
   SidebarHeader,
@@ -89,15 +90,7 @@ export function MerchantSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500">
-            <Zap className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-headline font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-violet-300 to-cyan-300 bg-clip-text text-transparent">Loyalty</span>
-            <span className="text-white">Leap</span>
-          </span>
-        </Link>
+        <MonyFestLogo variant="sidebar" />
       </SidebarHeader>
 
       <SidebarContent>
