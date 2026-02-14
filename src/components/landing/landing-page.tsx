@@ -312,18 +312,25 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-12">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <MonyFestLogo variant="footer" />
-          <div className="flex items-center gap-6 text-sm text-white/60">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#faqs" className="hover:text-white transition-colors">FAQs</a>
-            <a href="#about" className="hover:text-white transition-colors">About</a>
-            <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <MonyFestLogo variant="footer" />
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/60">
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#faqs" className="hover:text-white transition-colors">FAQs</a>
+              <a href="#about" className="hover:text-white transition-colors">About</a>
+              <Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
+              <Link href="/refunds" className="hover:text-white transition-colors">Refunds Policy</Link>
+              <Link href="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
+            </div>
           </div>
+          <p className="mx-auto mt-6 max-w-6xl px-4 text-center text-xs text-white/40">
+            © {new Date().getFullYear()} <MonyFestWordmark className="text-xs" />. A production-ready loyalty platform.
+          </p>
         </div>
-        <p className="mx-auto mt-6 max-w-6xl px-4 text-center text-xs text-white/40">
-          © {new Date().getFullYear()} <MonyFestWordmark className="text-xs" />. A production-ready loyalty platform.
-        </p>
       </footer>
     </div>
   );
