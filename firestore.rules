@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // users — Admin (list/edit), Agent (referrals), Merchant/Member (profile)
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // merchants — Admin (manage), Agent (territory), Member (discover/shop)
+    // -------------------------------------------------------------------------
+    match /merchants/{merchantId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // offers — Admin/Merchant (manage), Member (shop)
+    // -------------------------------------------------------------------------
+    match /offers/{offerId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // transactions — Admin (orders/revenue), Agent (commissions), Merchant (payouts), Member (history)
+    // -------------------------------------------------------------------------
+    match /transactions/{transactionId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // userCoupons — Member (my-coupons, offline-payment), Admin (data), creation on signup
+    // -------------------------------------------------------------------------
+    match /userCoupons/{couponId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // welcomeCoupons — Admin (manage), used when creating user coupons for new members
+    // -------------------------------------------------------------------------
+    match /welcomeCoupons/{couponId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // bundleOffers — Admin (campaigns), Member (homepage campaigns)
+    // -------------------------------------------------------------------------
+    match /bundleOffers/{offerId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // commissionSettings — Admin (commission management), server on signup (read)
+    // -------------------------------------------------------------------------
+    match /commissionSettings/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // payment_orders — PhonePe pending orders (create/status from app; webhook updates via Admin SDK)
+    // -------------------------------------------------------------------------
+    match /payment_orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // loyaltySlabConfigs — Admin (slab-based loyalty by category/industry)
+    // -------------------------------------------------------------------------
+    match /loyaltySlabConfigs/{configId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Default: deny any other collection not explicitly allowed above
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

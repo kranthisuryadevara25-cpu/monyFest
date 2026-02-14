@@ -1,0 +1,47 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "user-avatar-1",
+      "description": "User avatar",
+      "imageUrl": "https://picsum.photos/seed/101/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "User avatar",
+      "imageUrl": "https://picsum.photos/seed/102/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-3",
+      "description": "User avatar",
+      "imageUrl": "https://picsum.photos/seed/103/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-4",
+      "description": "User avatar",
+      "imageUrl": "https://picsum.photos/seed/104/100/100",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "merchant-logo-1",
+      "description": "Merchant logo",
+      "imageUrl": "https://picsum.photos/seed/201/100/100",
+      "imageHint": "company logo"
+    },
+    {
+      "id": "merchant-logo-2",
+      "description": "Merchant logo",
+      "imageUrl": "https://picsum.photos/seed/202/100/100",
+      "imageHint": "company logo"
+    },
+    {
+      "id": "merchant-logo-3",
+      "description": "Merchant logo",
+      "imageUrl": "https://picsum.photos/seed/203/100/100",
+      "imageHint": "company logo"
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'PT Sans', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 220 20% 98%;
+    --foreground: 220 10% 20%;
+    --card: 220 20% 100%;
+    --card-foreground: 220 10% 20%;
+    --popover: 220 20% 100%;
+    --popover-foreground: 220 10% 20%;
+    --primary: 260 70% 55%;
+    --primary-foreground: 260 70% 98%;
+    --secondary: 45 95% 55%;
+    --secondary-foreground: 45 95% 15%;
+    --muted: 220 20% 96%;
+    --muted-foreground: 220 5% 45%;
+    --accent: 180 80% 40%;
+    --accent-foreground: 180 80% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 145 65% 45%;
+    --success-foreground: 145 65% 98%;
+    --border: 220 20% 90%;
+    --input: 220 20% 92%;
+    --ring: 260 70% 60%;
+    
+    --chart-1: 260 70% 55%; /* primary */
+    --chart-2: 45 95% 55%; /* secondary */
+    --chart-3: 180 80% 40%; /* accent */
+    --chart-4: 27 87% 67%;
+    --chart-5: 197 37% 24%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 15% 15%;
+    --sidebar-foreground: 220 10% 80%;
+    --sidebar-primary: 180 70% 55%;
+    --sidebar-primary-foreground: 180 70% 10%;
+    --sidebar-accent: 220 15% 25%;
+    --sidebar-accent-foreground: 220 10% 95%;
+    --sidebar-border: 220 15% 25%;
+    --sidebar-ring: 180 80% 45%;
+  }
+
+  .dark {
+    --background: 220 15% 10%;
+    --foreground: 220 10% 90%;
+    --card: 220 15% 15%;
+    --card-foreground: 220 10% 90%;
+    --popover: 220 15% 15%;
+    --popover-foreground: 220 10% 90%;
+    --primary: 260 70% 65%;
+    --primary-foreground: 260 70% 10%;
+    --secondary: 45 85% 50%;
+    --secondary-foreground: 45 85% 10%;
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 180 70% 55%;
+    --accent-foreground: 180 70% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 145 55% 40%;
+    --success-foreground: 145 55% 98%;
+    --border: 220 15% 25%;
+    --input: 220 15% 25%;
+    --ring: 260 80% 65%;
+
+    --chart-1: 260 70% 65%;
+    --chart-2: 45 85% 50%;
+    --chart-3: 180 70% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --sidebar-background: 220 15% 10%;
+    --sidebar-foreground: 220 10% 80%;
+    --sidebar-primary: 180 70% 55%;
+    --sidebar-primary-foreground: 180 70% 10%;
+    --sidebar-accent: 220 15% 25%;
+    --sidebar-accent-foreground: 220 10% 95%;
+    --sidebar-border: 220 15% 25%;
+    --sidebar-ring: 180 80% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* Mobile: safe area for notched devices */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+/* Landing: animated gradient text (Engage Smarter / Loyalty That Leaps) */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.landing-gradient-text {
+  background-size: 200% 200%;
+  animation: gradient-shift 5s ease-in-out infinite;
+}
+
+/* App theme: same dark UI as landing for admin/agent/merchant/member */
+.app-theme {
+  --background: 270 50% 4%;
+  --foreground: 0 0% 98%;
+  --card: 270 30% 8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 270 30% 8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 260 70% 55%;
+  --primary-foreground: 0 0% 98%;
+  --muted: 270 20% 14%;
+  --muted-foreground: 0 0% 70%;
+  --accent: 280 60% 50%;
+  --accent-foreground: 0 0% 98%;
+  --border: 0 0% 100% / 0.1;
+  --input: 270 20% 14%;
+  --ring: 260 70% 55%;
+  --sidebar-background: 270 40% 6%;
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-primary: 280 70% 55%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 270 30% 12%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 0 0% 100% / 0.08;
+}
+.app-theme {
+  background-color: #0a0614;
+  color: hsl(var(--foreground));
+}
+.app-theme [data-slot="card"],
+.app-theme .rounded-2xl.border.bg-card,
+.app-theme .rounded-lg.border.bg-card {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+}
+.app-theme [data-slot="table"],
+.app-theme table {
+  --border: 0 0% 100% / 0.1;
+}
+.app-theme .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Tawai-style: section headings and cards inside app-theme */
+.app-theme [data-slot="card"] .font-semibold,
+.app-theme [data-slot="card"] .font-medium,
+.app-theme .font-headline {
+  color: hsl(var(--foreground));
+}
+.app-theme h1, .app-theme h2, .app-theme h3 {
+  color: white;
+}
+.app-theme .card-title,
+.app-theme [data-slot="card"] [class*="CardTitle"] {
+  color: white;
+}
+.app-theme [data-slot="card"] [class*="CardDescription"] {
+  color: rgba(255, 255, 255, 0.7);
+}
+.app-theme .border-b {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.app-theme a[class*="variant=link"] {
+  color: rgba(255, 255, 255, 0.9);
+}
+.app-theme button[class*="outline"] {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+.app-theme button[class*="outline"]:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.app-theme .bg-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.app-theme .text-primary {
+  color: rgb(196 181 253);
+}
+.app-theme .badge {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+/* Tawai-style gradient primary button - add class .btn-tawai to use */
+.app-theme .btn-tawai {
+  background: linear-gradient(to right, rgb(139 92 246), rgb(217 70 239), rgb(34 211 238)) !important;
+  color: white !important;
+  border: none !important;
+}
+.app-theme .btn-tawai:hover {
+  opacity: 0.9;
+  box-shadow: 0 10px 40px -10px rgba(139, 92, 246, 0.4);
+}
+/* Section heading tawai-style */
+.app-theme .section-title {
+  font-family: var(--font-headline, 'Space Grotesk'), sans-serif;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+}
+.app-theme .section-title-gradient {
+  background: linear-gradient(to right, rgb(196 181 253), rgb(251 207 232), rgb(165 243 252));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
