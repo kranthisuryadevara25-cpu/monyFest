@@ -16,6 +16,7 @@ import { getMerchantById } from './merchant-service';
 import { getSlabPointsForPurchase } from './loyalty-slab-service';
 import { getSlabCategoryKey } from '@/lib/loyalty-slabs';
 import { creditBoostForPurchase } from './boost-service';
+import { addLuckyDrawEntry } from './lucky-draw-service';
 
 const DEFAULT_LOYALTY_POINTS_PER_OFFER = 10;
 
@@ -83,6 +84,7 @@ export async function recordPurchaseFromGateway(
   if (merchantId) {
     await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
   }
+  await addLuckyDrawEntry(userId, purchaseId, totalAmountPaise);
   return {
     success: true,
     purchaseTransactionId: purchaseId,
@@ -137,6 +139,7 @@ export async function recordPurchase(
     if (merchantId) {
       await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
     }
+    await addLuckyDrawEntry(userId, purchaseId, totalAmountPaise);
     return {
       success: true,
       purchaseTransactionId: purchaseId,
@@ -158,6 +161,7 @@ export async function recordPurchase(
   if (merchantId) {
     await creditBoostForPurchase(merchantId, totalAmountPaise, { sourceTransactionId: purchaseId });
   }
+  await addLuckyDrawEntry(userId, purchaseId, totalAmountPaise);
 
   const alloc = await allocatePointsOnPurchase({
     buyerId: userId,

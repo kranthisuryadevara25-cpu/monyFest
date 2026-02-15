@@ -143,6 +143,38 @@ export interface BoostWithdrawal {
   note?: string;
 }
 
+/** Lucky Draw admin config. Min purchase in rupees; reward type and description editable by admin. */
+export interface LuckyDrawConfig {
+  enabled: boolean;
+  minPurchaseRupees: number;
+  /** 'cashback' | 'prize_money' | 'vouchers' */
+  rewardType: 'cashback' | 'prize_money' | 'vouchers';
+  /** e.g. "100% Cashback" or "₹5000 Prize" or "Gift Voucher" */
+  rewardDescription: string;
+  updatedAt?: Date;
+}
+
+/** One entry into the daily draw (one qualifying purchase = one entry). drawDate = YYYY-MM-DD. */
+export interface LuckyDrawEntry {
+  id: string;
+  userId: string;
+  transactionId: string;
+  amountRupees: number;
+  drawDate: string;
+  createdAt: Date;
+}
+
+/** Winner record for a daily draw. */
+export interface LuckyDrawWinner {
+  id: string;
+  drawDate: string;
+  userId: string;
+  rewardType: 'cashback' | 'prize_money' | 'vouchers';
+  rewardDescription: string;
+  transactionId?: string;
+  createdAt: Date;
+}
+
 /** Single slab: order value in this range earns fixed points. */
 export interface LoyaltySlab {
   minAmountPaise: number;

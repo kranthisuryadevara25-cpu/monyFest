@@ -95,6 +95,28 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // -------------------------------------------------------------------------
+    // luckyDrawConfig — Admin (settings), server read for eligibility
+    // -------------------------------------------------------------------------
+    match /luckyDrawConfig/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // luckyDrawEntries — Server write on purchase; Admin read for run draw
+    // -------------------------------------------------------------------------
+    match /luckyDrawEntries/{entryId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // luckyDrawWinners — Public read (winner board); write when authenticated (admin run draw)
+    // -------------------------------------------------------------------------
+    match /luckyDrawWinners/{winnerId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     // Default: deny any other collection not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

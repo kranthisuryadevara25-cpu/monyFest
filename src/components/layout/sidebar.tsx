@@ -33,6 +33,7 @@ import {
   Gift,
   Layers,
   BadgePercent,
+  Trophy,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -69,6 +70,7 @@ const offersItems = [
   { href: '/admin/loyalty-slabs', label: 'Loyalty Slabs', icon: Layers },
   { href: '/admin/bundle-offers', label: 'Bundle Offers', icon: Archive },
   { href: '/admin/welcome-coupons', label: 'Welcome Coupons', icon: Gift },
+  { href: '/admin/lucky-draw', label: 'Lucky Draw', icon: Trophy },
 ];
 
 const analyticsItems = [

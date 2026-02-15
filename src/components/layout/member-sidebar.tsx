@@ -29,6 +29,7 @@ import {
   User as UserIcon,
   Ticket,
   Target,
+  Trophy,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -64,6 +65,7 @@ const toolsMenuItems = [
     { href: '/member/offline-payment', label: 'Redeem Coupon', icon: QrCode },
     { href: '/member/loyalty-history', label: 'History', icon: History },
     { href: '/member/wallet', label: 'Wallet', icon: Wallet },
+    { href: '/member/winner-board', label: 'Winner Board', icon: Trophy },
 ];
 
 export function MemberSidebar() {

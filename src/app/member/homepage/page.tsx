@@ -40,7 +40,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Gift, ArrowRight, Target, Ticket } from 'lucide-react';
+import { Gift, ArrowRight, Target, Ticket, Trophy } from 'lucide-react';
 import { mockAdvertisements } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -49,6 +49,7 @@ import { useAuth } from '@/lib/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/layout/header';
 import { getMemberHomepageData } from '@/services/data-service';
+import { getLuckyDrawConfigClient, getMyEntriesCountClient } from '@/services/lucky-draw-service.client';
 import { getBundleOffersClient } from '@/services/bundle-offer-service.client';
 import { getOffersClient } from '@/services/offer-service.client';
 import { getUserByIdClient } from '@/services/user-service.client';
@@ -81,10 +82,17 @@ const ScrollingText = ({ ads }: { ads: any[] }) => {
 };
 
 
+function getDrawDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function MemberHomepage() {
   const { user: authUser } = useAuth();
   const [data, setData] = React.useState<MemberHomepageData | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [luckyDrawConfig, setLuckyDrawConfig] = React.useState<Awaited<ReturnType<typeof getLuckyDrawConfigClient>> | null>(null);
+  const [myEntriesToday, setMyEntriesToday] = React.useState(0);
 
   React.useEffect(() => {
     const fetchMemberData = async () => {
@@ -93,12 +101,15 @@ export default function MemberHomepage() {
             return;
         }
         setLoading(true);
-        const [activeCampaigns, activeOffers, appUser, userTransactions, coupons] = await Promise.all([
+        const today = getDrawDate();
+        const [activeCampaigns, activeOffers, appUser, userTransactions, coupons, ldConfig, entriesCount] = await Promise.all([
             getBundleOffersClient('active'),
             getOffersClient('active', 2),
             getUserByIdClient(authUser.uid),
             getTransactionsClient(authUser.uid, 3),
             getUserCouponsClient(authUser.uid),
+            getLuckyDrawConfigClient(),
+            getMyEntriesCountClient(authUser.uid, today),
         ]);
         const homepageData = await getMemberHomepageData(authUser.uid, {
             activeCampaigns,
@@ -108,6 +119,8 @@ export default function MemberHomepage() {
             coupons,
         });
         setData(homepageData);
+        setLuckyDrawConfig(ldConfig);
+        setMyEntriesToday(entriesCount);
         setLoading(false);
     };
     fetchMemberData();
@@ -215,6 +228,31 @@ export default function MemberHomepage() {
 
         {/* Scrolling Text Ads */}
         <ScrollingText ads={scrollAds} />
+
+        {/* Lucky Draw */}
+        {luckyDrawConfig?.enabled && (
+          <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/10 backdrop-blur-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg font-semibold text-white">
+                    <Trophy className="h-5 w-5 text-amber-500" />
+                    Daily Lucky Draw
+                  </CardTitle>
+                  <CardDescription className="text-white/80">
+                    Min purchase ₹{luckyDrawConfig.minPurchaseRupees}+ for one entry. Today&apos;s reward: {luckyDrawConfig.rewardDescription}.
+                    {myEntriesToday > 0 && ` Your entries today: ${myEntriesToday}.`}
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" className="border-amber-500/40 text-amber-200 hover:bg-amber-500/20" asChild>
+                  <Link href="/member/winner-board">
+                    Winner Board <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        )}
 
          {/* My Coupons Carousel */}
          {data.userCoupons && data.userCoupons.length > 0 && (
