@@ -234,6 +234,23 @@ export type Territory = {
     assignedAgentId: string;
 }
 
+export type Shop = {
+  id: string;
+  merchantId: string;
+  name: string;
+  address: string;
+  pincode: string;
+  status: 'Open' | 'Closed';
+};
+
+export type MerchantNotification = {
+  id: string;
+  merchantId: string;
+  title: string;
+  type: 'system' | 'customer' | 'offer';
+  read: boolean;
+  createdAt: Date;
+};
 
 export interface BundleOffer {
   id: string;
@@ -280,6 +297,7 @@ export interface MerchantDashboardData {
     merchantOffers: Offer[];
     lastPayout?: Transaction;
     totalPayouts: number;
+    totalRedemptions: number;
 }
 
 export interface MemberHomepageData {

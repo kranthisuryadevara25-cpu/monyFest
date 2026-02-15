@@ -41,6 +41,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '@/lib/auth';
 import type { User as AppUser } from '@/lib/types';
 import { getUserByIdClient } from '@/services/user-service.client';
+import { updateUser } from '@/services/user-service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/layout/header';
 
@@ -167,14 +168,15 @@ export default function ProfilePage() {
   const handleSaveChanges = async () => {
     if (!member) return;
     setIsSaving(true);
-    // In a real app, this would call a service to update the user in the database
-    console.log('Saving profile:', { uid: member.uid, name, email, phone });
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    toast({
-        title: 'Profile Updated',
-        description: 'Your changes have been saved successfully.',
-    });
+    try {
+      await updateUser(member.uid, { name: name.trim() || undefined, phone: phone.trim() || undefined });
+      setMember((prev) => prev ? { ...prev, name: name.trim() || prev.name, phone: phone.trim() || prev.phone } : null);
+      toast({ title: 'Profile Updated', description: 'Your changes have been saved successfully.' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Update failed', description: e instanceof Error ? e.message : 'Could not save profile.' });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const handleSaveAddress = (address: Address) => {

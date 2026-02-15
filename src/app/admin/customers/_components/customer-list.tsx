@@ -33,6 +33,7 @@ import {
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { updateUserStatus } from '@/services/user-service';
 
 function exportToCsv(filename: string, rows: (string | number | Date)[][]) {
     const processRow = (row: (string | number | Date)[]) => {
@@ -95,15 +96,26 @@ export function CustomerList({ initialCustomers, userMap: initialUserMap }: Cust
   const [loading, setLoading] = React.useState(false);
 
 
-  const handleStatusChange = (userId: string, newStatus: User['status']) => {
-    // In a real app, this would be an API call to update the database.
-    setCustomers((prev) =>
-      prev.map((c) => (c.uid === userId ? { ...c, status: newStatus } : c))
-    );
-    toast({
+  const handleStatusChange = async (userId: string, newStatus: User['status']) => {
+    setLoading(true);
+    try {
+      await updateUserStatus(userId, newStatus);
+      setCustomers((prev) =>
+        prev.map((c) => (c.uid === userId ? { ...c, status: newStatus } : c))
+      );
+      toast({
         title: 'Status Updated',
         description: `Customer status has been changed to ${newStatus}.`,
-    });
+      });
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Update failed',
+        description: e instanceof Error ? e.message : 'Could not update customer status.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExport = () => {

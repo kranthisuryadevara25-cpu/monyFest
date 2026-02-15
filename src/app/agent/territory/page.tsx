@@ -4,18 +4,53 @@ import * as React from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Map, Users, Building } from "lucide-react";
-import { mockUsers, mockMerchants, mockTerritories } from '@/lib/placeholder-data';
+import { useAuth } from '@/lib/auth';
+import { getUserById } from '@/services/user-service';
+import { getTerritoryByAgentId } from '@/services/territory-service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TerritoryPage() {
-  const agent = mockUsers.find(u => u.uid === 'laxman-agent-02');
-  if (!agent) {
-    return <div>Agent not found or not approved.</div>;
+  const { user: authUser } = useAuth();
+  const [agentId, setAgentId] = React.useState<string | null>(null);
+  const [assignedTerritory, setAssignedTerritory] = React.useState<{ id: string; name: string; pincodes: string[]; assignedAgentId: string } | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!authUser) {
+      setLoading(false);
+      return;
+    }
+    const run = async () => {
+      const user = await getUserById(authUser.uid);
+      if (user && user.role === 'agent') {
+        setAgentId(user.uid);
+        const territory = await getTerritoryByAgentId(user.uid);
+        setAssignedTerritory(territory);
+      }
+      setLoading(false);
+    };
+    run();
+  }, [authUser]);
+
+  if (loading) {
+    return (
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <Header pageTitle="My Territory" />
+        <Card><CardContent className="p-6"><Skeleton className="h-24 w-full" /></CardContent></Card>
+      </main>
+    );
   }
-  
-  const assignedTerritory = mockTerritories.find(t => t.assignedAgentId === agent.uid);
-  // This is dummy logic and will need to be replaced with a real location-based query
-  const territoryUsers = assignedTerritory ? mockUsers.filter(u => u.role === 'member').slice(0, 5) : [];
-  const territoryMerchants = assignedTerritory ? mockMerchants.slice(0, 2) : [];
+  if (!authUser || !agentId) {
+    return (
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <Header pageTitle="My Territory" />
+        <Card><CardContent className="p-6">Agent not found or not approved.</CardContent></Card>
+      </main>
+    );
+  }
+
+  const territoryUsersCount = 0;
+  const territoryMerchantsCount = 0;
 
 
   return (
@@ -41,8 +76,8 @@ export default function TerritoryPage() {
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{territoryUsers.length}</div>
-                            <p className="text-xs text-muted-foreground">Potential customers to engage</p>
+                            <div className="text-2xl font-bold">{territoryUsersCount}</div>
+                            <p className="text-xs text-muted-foreground">Potential customers (location-based when available)</p>
                         </CardContent>
                     </Card>
                      <Card>
@@ -51,7 +86,7 @@ export default function TerritoryPage() {
                             <Building className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{territoryMerchants.length}</div>
+                            <div className="text-2xl font-bold">{territoryMerchantsCount}</div>
                              <p className="text-xs text-muted-foreground">Potential businesses to onboard</p>
                         </CardContent>
                     </Card>

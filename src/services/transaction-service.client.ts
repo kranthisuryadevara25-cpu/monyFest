@@ -40,3 +40,25 @@ export async function getTransactionsClient(
     return [];
   }
 }
+
+/**
+ * Client-side fetch of transactions by merchant (for merchant analytics).
+ */
+export async function getTransactionsByMerchantIdClient(
+  merchantId: string,
+  limitVal?: number
+): Promise<Transaction[]> {
+  if (!isFirebaseConfigured) return [];
+  const col = collection(db, 'transactions');
+  let q = query(col, where('merchantId', '==', merchantId), orderBy('createdAt', 'desc'));
+  if (limitVal != null) q = query(q, limit(limitVal));
+  try {
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) =>
+      transformToTransaction({ ...d.data(), id: d.id } as Record<string, unknown>)
+    );
+  } catch (error) {
+    console.error('Error fetching transactions by merchant (client):', error);
+    return [];
+  }
+}

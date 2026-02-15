@@ -29,8 +29,8 @@ import {
   Edit,
   Trash2,
 } from 'lucide-react';
-import { mockMerchants } from '@/lib/placeholder-data';
 import type { Offer, Merchant, OfferType, DiscountType } from '@/lib/types';
+import { getMerchantsClient } from '@/services/merchant-service.client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,10 +71,12 @@ import { getOffers, createOffer, updateOffer, updateOfferStatus, deleteOffer } f
 
 const OfferForm = ({
   offer,
+  merchants,
   onSave,
   onOpenChange
 }: {
   offer?: Offer;
+  merchants: Merchant[];
   onSave: (offer: Offer) => void;
   onOpenChange: (open: boolean) => void;
 }) => {
@@ -103,7 +105,7 @@ const OfferForm = ({
   }
 
   const handleSave = () => {
-    const selectedMerchants = mockMerchants.filter(m => merchantIds.includes(m.merchantId));
+    const selectedMerchants = merchants.filter(m => merchantIds.includes(m.merchantId));
     if (!title || !description || !expiryDate || selectedMerchants.length === 0 || !discountValue) {
       toast({
         variant: 'destructive',
@@ -143,7 +145,7 @@ const OfferForm = ({
         <p className="text-sm text-muted-foreground">Select one or more merchants for this offer.</p>
         <ScrollArea className="h-32 rounded-md border p-2">
             <div className="space-y-2">
-            {mockMerchants.map(m => (
+            {merchants.map(m => (
                 <div key={m.merchantId} className="flex items-center gap-2">
                     <Checkbox
                         id={`merchant-${m.merchantId}`}
@@ -308,6 +310,7 @@ const getOfferValue = (offer: Offer) => {
 export default function CouponApprovalsPage() {
   const { toast } = useToast();
   const [offers, setOffers] = React.useState<Offer[]>([]);
+  const [merchants, setMerchants] = React.useState<Merchant[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingOffer, setEditingOffer] = React.useState<Offer | undefined>(undefined);
 
@@ -317,6 +320,10 @@ export default function CouponApprovalsPage() {
       setOffers(fetchedOffers);
     }
     fetchOffers();
+  }, []);
+
+  React.useEffect(() => {
+    getMerchantsClient().then(setMerchants);
   }, []);
 
   const handleStatusChange = async (offerId: string, newStatus: Offer['status']) => {
@@ -495,7 +502,7 @@ export default function CouponApprovalsPage() {
             <DialogHeader>
                 <DialogTitle>{editingOffer ? 'Edit Offer' : 'Create New Offer'}</DialogTitle>
             </DialogHeader>
-            <OfferForm offer={editingOffer} onSave={handleSave} onOpenChange={setIsDialogOpen} />
+            <OfferForm offer={editingOffer} merchants={merchants} onSave={handleSave} onOpenChange={setIsDialogOpen} />
             </DialogContent>
         </Dialog>
       </div>

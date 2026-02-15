@@ -1,79 +1,91 @@
-
 'use client';
+
 import * as React from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Users, ShoppingCart, TrendingUp } from "lucide-react";
+import { useAuth } from '@/lib/auth';
+import { getUserByIdClient } from '@/services/user-service.client';
+import { listVoiceOrdersByMerchantClient } from '@/services/voice-order-service.client';
+import { getTransactionsByMerchantIdClient } from '@/services/transaction-service.client';
+import { subMinutes } from 'date-fns';
 
 export default function RealtimeDashboardPage() {
-  const [activeUsers, setActiveUsers] = React.useState(573);
-  const [liveOrders, setLiveOrders] = React.useState(21);
+  const { user: authUser } = useAuth();
+  const [merchantId, setMerchantId] = React.useState<string | null>(null);
+  const [voiceOrderCount, setVoiceOrderCount] = React.useState(0);
+  const [recentTxCount, setRecentTxCount] = React.useState(0);
+  const [recentRevenue, setRecentRevenue] = React.useState(0);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const userInterval = setInterval(() => {
-        setActiveUsers(prev => prev + Math.floor(Math.random() * 5) - 2);
-    }, 2000);
-    const orderInterval = setInterval(() => {
-        setLiveOrders(prev => prev + (Math.random() > 0.8 ? 1 : 0));
-    }, 5000);
-
-    return () => {
-      clearInterval(userInterval);
-      clearInterval(orderInterval);
+    if (!authUser) {
+      setLoading(false);
+      return;
     }
-  }, []);
+    let cancelled = false;
+    (async () => {
+      const user = await getUserByIdClient(authUser.uid);
+      const mid = user?.merchantId ?? authUser.uid;
+      if (cancelled) return;
+      setMerchantId(mid);
+      const [orders, txs] = await Promise.all([
+        listVoiceOrdersByMerchantClient(mid, 20),
+        getTransactionsByMerchantIdClient(mid, 100),
+      ]);
+      if (cancelled) return;
+      const fiveMinAgo = subMinutes(new Date(), 5);
+      const recentTxs = txs.filter((t) => new Date(t.createdAt) >= fiveMinAgo && t.type === 'purchase');
+      const recentOrders = orders.filter((o) => new Date(o.createdAt) >= fiveMinAgo);
+      setVoiceOrderCount(recentOrders.length);
+      setRecentTxCount(recentTxs.length);
+      setRecentRevenue(recentTxs.reduce((acc, t) => acc + (t.amount || 0), 0) / 100);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [authUser]);
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
       <Header pageTitle="Real-time Dashboard" />
-       <Card>
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Activity className="h-6 w-6 text-red-500 animate-pulse" /> Live Business Monitoring</CardTitle>
-          <CardDescription>Monitor your business activity as it happens.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-6 w-6 text-red-500 animate-pulse" /> Live Business Monitoring
+          </CardTitle>
+          <CardDescription>Activity in the last 5 minutes. Data refreshes from your store.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-3">
-             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Users Active Now
-                    </CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-4xl font-bold">{activeUsers}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Viewing your offers and products
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Live Orders
-                    </CardTitle>
-                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-4xl font-bold">{liveOrders}</div>
-                    <p className="text-xs text-muted-foreground">
-                    In the last 5 minutes
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Sales Per Minute
-                    </CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-4xl font-bold">₹1,280</div>
-                    <p className="text-xs text-muted-foreground">
-                    Based on recent transaction velocity
-                    </p>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Voice Orders (5 min)</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{loading ? '—' : voiceOrderCount}</div>
+              <p className="text-xs text-muted-foreground">New voice orders received</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Orders (5 min)</CardTitle>
+              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{loading ? '—' : recentTxCount}</div>
+              <p className="text-xs text-muted-foreground">Purchase transactions</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenue (5 min)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold">{loading ? '—' : `₹${recentRevenue.toFixed(0)}`}</div>
+              <p className="text-xs text-muted-foreground">From recent transactions</p>
+            </CardContent>
+          </Card>
         </CardContent>
       </Card>
     </main>

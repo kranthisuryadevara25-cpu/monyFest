@@ -13,6 +13,8 @@ import { getTransactionsClient } from '@/services/transaction-service.client';
 import { getUsersClient } from '@/services/user-service.client';
 import type { Transaction, User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/auth';
+import { getUserById } from '@/services/user-service';
 
 function exportToCsv(filename: string, rows: (string | number | Date)[][]) {
     const processRow = (row: (string | number | Date)[]) => {
@@ -54,25 +56,27 @@ function exportToCsv(filename: string, rows: (string | number | Date)[][]) {
 
 export default function OrdersPage() {
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
   const [orders, setOrders] = React.useState<Transaction[]>([]);
   const [users, setUsers] = React.useState<User[]>([]);
-
-  // In a real app, you would get the current merchant's ID from their session/auth context
-  const merchantId = 'merchant-01';
+  const [merchantId, setMerchantId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchData = async () => {
-        const [allTransactions, allUsers] = await Promise.all([
-            getTransactionsClient(),
-            getUsersClient('member'),
-        ]);
-        
-        const merchantOrders = allTransactions.filter(tx => tx.merchantId === merchantId && tx.type === 'purchase');
-        setOrders(merchantOrders);
-        setUsers(allUsers);
-    }
+      if (!authUser) return;
+      const merchantUser = await getUserById(authUser.uid);
+      const id = merchantUser?.merchantId ?? authUser.uid;
+      setMerchantId(id);
+      const [allTransactions, allUsers] = await Promise.all([
+        getTransactionsClient(),
+        getUsersClient('member'),
+      ]);
+      const merchantOrders = allTransactions.filter((tx) => tx.merchantId === id && tx.type === 'purchase');
+      setOrders(merchantOrders);
+      setUsers(allUsers);
+    };
     fetchData();
-  }, [merchantId]);
+  }, [authUser]);
 
   const handleExport = () => {
     const dataToExport = orders.map(order => {

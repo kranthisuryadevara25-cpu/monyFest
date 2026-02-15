@@ -19,11 +19,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-
+import { useAuth } from '@/lib/auth';
+import { getUserById } from '@/services/user-service';
+import { getMerchants } from '@/services/merchant-service';
+import { createOffer } from '@/services/offer-service';
+import type { Merchant } from '@/lib/types';
 
 export default function NewOfferPage() {
     const { toast } = useToast();
     const router = useRouter();
+    const { user: authUser } = useAuth();
     const [date, setDate] = React.useState<Date>();
     const [title, setTitle] = React.useState('');
     const [description, setDescription] = React.useState('');
@@ -31,6 +36,19 @@ export default function NewOfferPage() {
     const [moderationResult, setModerationResult] = React.useState<ModerateOfferOutput | null>(null);
     const [isPending, startTransition] = useTransition();
     const [isSaving, setIsSaving] = React.useState(false);
+    const [merchant, setMerchant] = React.useState<Merchant | null>(null);
+
+    React.useEffect(() => {
+        if (!authUser) return;
+        const run = async () => {
+            const user = await getUserById(authUser.uid);
+            if (!user?.merchantId) return;
+            const merchants = await getMerchants();
+            const m = merchants.find((x) => x.merchantId === user.merchantId) ?? null;
+            setMerchant(m);
+        };
+        run();
+    }, [authUser]);
 
 
     const handleModerate = () => {
@@ -60,23 +78,48 @@ export default function NewOfferPage() {
             toast({
                 variant: 'destructive',
                 title: 'Missing Fields',
-                description: 'Please fill out all the details for the offer.'
+                description: 'Please fill out all the details for the offer.',
+            });
+            return;
+        }
+        if (!merchant) {
+            toast({
+                variant: 'destructive',
+                title: 'Merchant required',
+                description: 'Your merchant profile was not found. Complete onboarding first.',
             });
             return;
         }
 
         setIsSaving(true);
-        // In a real app, this would save to the database
-        console.log({ title, description, points, expiryDate: date });
-        await new Promise(res => setTimeout(res, 1000));
-        setIsSaving(false);
-        toast({
-            title: 'Offer Submitted!',
-            description: 'Your new offer has been submitted for admin approval.'
-        });
-        // In a real app, we would add the new offer to a global state or refetch.
-        // For now, we just redirect.
-        router.push('/merchant/coupons');
+        try {
+            await createOffer({
+                merchantIds: [merchant.merchantId],
+                merchantName: merchant.name,
+                merchantLogo: merchant.logo,
+                title: title.trim(),
+                description: description.trim(),
+                expiryDate: date,
+                status: 'pending',
+                offerType: 'standard',
+                discountType: 'fixed',
+                discountValue: Number(points) * 100,
+                points: Number(points) || undefined,
+            });
+            toast({
+                title: 'Offer Submitted!',
+                description: 'Your new offer has been submitted for admin approval.',
+            });
+            router.push('/merchant/coupons');
+        } catch (e) {
+            toast({
+                variant: 'destructive',
+                title: 'Submit failed',
+                description: e instanceof Error ? e.message : 'Could not create offer.',
+            });
+        } finally {
+            setIsSaving(false);
+        }
     }
 
   return (

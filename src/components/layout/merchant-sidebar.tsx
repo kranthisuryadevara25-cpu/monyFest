@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from 'react';
 import { MonyFestLogo } from '@/components/MonyFestLogo';
 import {
   Sidebar,
@@ -35,7 +36,6 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { mockUsers, mockMerchants } from '@/lib/placeholder-data';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,9 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { useAuth, signOut } from '@/lib/auth';
+import { getUserByIdClient } from '@/services/user-service.client';
+import { getMerchantByIdClient } from '@/services/merchant-service.client';
+import type { User, Merchant } from '@/lib/types';
 
 const mainMenuItems = [
   { href: '/merchant/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -80,8 +83,24 @@ export function MerchantSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user: authUser } = useAuth();
-  const merchantUser = mockUsers.find((u) => u.role === 'merchant');
-  const merchant = mockMerchants.find((m) => m.merchantId === 'merchant-01');
+  const [appUser, setAppUser] = React.useState<User | null>(null);
+  const [merchant, setMerchant] = React.useState<Merchant | null>(null);
+
+  React.useEffect(() => {
+    if (!authUser) {
+      setAppUser(null);
+      setMerchant(null);
+      return;
+    }
+    getUserByIdClient(authUser.uid).then((u) => {
+      setAppUser(u ?? null);
+      if (u?.merchantId) {
+        getMerchantByIdClient(u.merchantId).then(setMerchant);
+      } else {
+        setMerchant(null);
+      }
+    });
+  }, [authUser]);
 
   const handleLogout = async () => {
     await signOut();
@@ -196,16 +215,16 @@ export function MerchantSidebar() {
               <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer">
                 <Avatar className="h-9 w-9">
                   <AvatarImage
-                    src={merchantUser?.avatarUrl ?? authUser.photoURL ?? ''}
-                    alt={merchantUser?.name ?? authUser.displayName ?? 'Merchant'}
+                    src={appUser?.avatarUrl ?? authUser.photoURL ?? ''}
+                    alt={appUser?.name ?? authUser.displayName ?? 'Merchant'}
                     data-ai-hint="person portrait"
                   />
-                  <AvatarFallback>{(merchantUser?.name ?? authUser.displayName ?? authUser.email ?? 'M').charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{(appUser?.name ?? authUser.displayName ?? authUser.email ?? 'M').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-semibold">{merchant?.name ?? merchantUser?.name ?? authUser.displayName ?? 'Merchant'}</span>
+                  <span className="text-sm font-semibold">{merchant?.name ?? appUser?.name ?? authUser.displayName ?? 'Merchant'}</span>
                   <span className="text-xs text-muted-foreground">
-                    {merchantUser?.email ?? authUser.email ?? ''}
+                    {appUser?.email ?? authUser.email ?? ''}
                   </span>
                 </div>
               </div>

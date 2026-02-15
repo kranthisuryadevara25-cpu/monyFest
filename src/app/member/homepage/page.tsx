@@ -41,8 +41,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Gift, ArrowRight, Target, Ticket, Trophy } from 'lucide-react';
-import { mockAdvertisements } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
+import { listAdvertisementsClient } from '@/services/advertisement-service.client';
 import Link from 'next/link';
 import type { Transaction, User, Offer, MemberHomepageData, BundleOffer, UserCoupon } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
@@ -93,6 +93,7 @@ export default function MemberHomepage() {
   const [loading, setLoading] = React.useState(true);
   const [luckyDrawConfig, setLuckyDrawConfig] = React.useState<Awaited<ReturnType<typeof getLuckyDrawConfigClient>> | null>(null);
   const [myEntriesToday, setMyEntriesToday] = React.useState(0);
+  const [activeAds, setActiveAds] = React.useState<Awaited<ReturnType<typeof listAdvertisementsClient>>>([]);
 
   React.useEffect(() => {
     const fetchMemberData = async () => {
@@ -102,7 +103,7 @@ export default function MemberHomepage() {
         }
         setLoading(true);
         const today = getDrawDate();
-        const [activeCampaigns, activeOffers, appUser, userTransactions, coupons, ldConfig, entriesCount] = await Promise.all([
+        const [activeCampaigns, activeOffers, appUser, userTransactions, coupons, ldConfig, entriesCount, ads] = await Promise.all([
             getBundleOffersClient('active'),
             getOffersClient('active', 2),
             getUserByIdClient(authUser.uid),
@@ -110,6 +111,7 @@ export default function MemberHomepage() {
             getUserCouponsClient(authUser.uid),
             getLuckyDrawConfigClient(),
             getMyEntriesCountClient(authUser.uid, today),
+            listAdvertisementsClient('active'),
         ]);
         const homepageData = await getMemberHomepageData(authUser.uid, {
             activeCampaigns,
@@ -121,6 +123,7 @@ export default function MemberHomepage() {
         setData(homepageData);
         setLuckyDrawConfig(ldConfig);
         setMyEntriesToday(entriesCount);
+        setActiveAds(ads);
         setLoading(false);
     };
     fetchMemberData();
@@ -154,9 +157,7 @@ export default function MemberHomepage() {
   }
   
   const memberLocation = data.member?.location?.toLowerCase();
-  const allAds = mockAdvertisements.filter(ad => ad.status === 'active');
-  
-  const targetedAds = allAds.filter(ad => {
+  const targetedAds = activeAds.filter(ad => {
     if (!ad.targetLocation) return true;
     const locations = ad.targetLocation.toLowerCase().split(',').map(l => l.trim());
     return locations.includes(memberLocation || '');

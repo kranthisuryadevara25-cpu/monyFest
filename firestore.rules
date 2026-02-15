@@ -117,6 +117,41 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // -------------------------------------------------------------------------
+    // territories — Admin (CRUD), Agent (read own assigned)
+    // -------------------------------------------------------------------------
+    match /territories/{territoryId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // shops — Merchant (CRUD own shops)
+    // -------------------------------------------------------------------------
+    match /shops/{shopId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // notifications — User/Merchant (read own, mark read)
+    // -------------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // advertisements — Admin (CRUD), Member (read active)
+    // -------------------------------------------------------------------------
+    match /advertisements/{adId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // voiceOrders — Merchant (CRUD own)
+    // -------------------------------------------------------------------------
+    match /voiceOrders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+
     // Default: deny any other collection not explicitly allowed above
     match /{document=**} {
       allow read, write: if false;

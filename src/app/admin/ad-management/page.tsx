@@ -26,8 +26,8 @@ import {
   Edit,
   Trash2,
 } from 'lucide-react';
-import { mockAdvertisements } from '@/lib/placeholder-data';
 import type { Advertisement, AdType } from '@/lib/types';
+import { listAdvertisements, createAdvertisement, updateAdvertisement, deleteAdvertisement } from '@/services/advertisement-service';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -133,27 +133,48 @@ const AdForm = ({ ad, onSave, onOpenChange }: { ad?: Advertisement; onSave: (ad:
 
 export default function AdManagementPage() {
   const { toast } = useToast();
-  const [ads, setAds] = React.useState<Advertisement[]>(mockAdvertisements);
+  const [ads, setAds] = React.useState<Advertisement[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingAd, setEditingAd] = React.useState<Advertisement | undefined>(undefined);
 
-  const handleSave = (ad: Advertisement) => {
-    const isEditing = ads.some(a => a.id === ad.id);
-    if (isEditing) {
-        setAds(ads.map(a => a.id === ad.id ? ad : a));
-        toast({ title: "Ad Updated", description: `"${ad.title}" has been updated.` });
-    } else {
-        setAds([ad, ...ads]);
-        toast({ title: "Ad Created", description: `"${ad.title}" has been created.` });
-    }
-    setIsDialogOpen(false);
-    setEditingAd(undefined);
-  }
+  const loadAds = React.useCallback(() => {
+    setLoading(true);
+    listAdvertisements().then(setAds).finally(() => setLoading(false));
+  }, []);
 
-  const handleDelete = (adId: string) => {
-    setAds(ads.filter(a => a.id !== adId));
-    toast({ variant: 'destructive', title: "Ad Deleted", description: "The advertisement has been deleted." });
-  }
+  React.useEffect(() => {
+    loadAds();
+  }, [loadAds]);
+
+  const handleSave = async (ad: Advertisement) => {
+    const isEditing = ads.some((a) => a.id === ad.id);
+    try {
+      if (isEditing) {
+        await updateAdvertisement(ad.id, { title: ad.title, type: ad.type, content: ad.content, link: ad.link, status: ad.status, targetLocation: ad.targetLocation });
+        setAds((prev) => prev.map((a) => (a.id === ad.id ? ad : a)));
+        toast({ title: 'Ad Updated', description: `"${ad.title}" has been updated.` });
+      } else {
+        const id = await createAdvertisement({ title: ad.title, type: ad.type, content: ad.content, link: ad.link, status: ad.status, targetLocation: ad.targetLocation || undefined });
+        setAds((prev) => [{ ...ad, id, createdAt: new Date() }, ...prev]);
+        toast({ title: 'Ad Created', description: `"${ad.title}" has been created.` });
+      }
+      setIsDialogOpen(false);
+      setEditingAd(undefined);
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: e instanceof Error ? e.message : 'Failed to save ad.' });
+    }
+  };
+
+  const handleDelete = async (adId: string) => {
+    try {
+      await deleteAdvertisement(adId);
+      setAds((prev) => prev.filter((a) => a.id !== adId));
+      toast({ variant: 'destructive', title: 'Ad Deleted', description: 'The advertisement has been deleted.' });
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Error', description: e instanceof Error ? e.message : 'Failed to delete ad.' });
+    }
+  };
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -193,7 +214,11 @@ export default function AdManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ads.map((ad) => (
+                {loading ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow>
+                ) : ads.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No advertisements yet. Create one to get started.</TableCell></TableRow>
+                ) : ads.map((ad) => (
                   <TableRow key={ad.id}>
                     <TableCell className="font-medium">{ad.title}</TableCell>
                     <TableCell><Badge variant="outline" className="capitalize">{ad.type}</Badge></TableCell>

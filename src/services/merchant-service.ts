@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, getDocs, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 import type { Merchant } from '@/lib/types';
 import { getCommissionSettings } from './commission-service';
@@ -90,6 +90,25 @@ export async function createMerchant(data: Merchant): Promise<string> {
   }
 
   return data.merchantId;
+}
+
+/** Updatable merchant fields (profile/branding). */
+export type MerchantUpdateData = Partial<Pick<Merchant, 'name' | 'logo' | 'category' | 'industry' | 'gstin'>>;
+
+/**
+ * Updates a merchant's profile fields. Used by merchant settings.
+ */
+export async function updateMerchant(merchantId: string, data: MerchantUpdateData): Promise<void> {
+  if (!isFirebaseConfigured) throw new Error('Firebase is not configured.');
+  const ref = doc(db, 'merchants', merchantId);
+  const updates: Record<string, unknown> = {};
+  if (data.name !== undefined) updates.name = data.name;
+  if (data.logo !== undefined) updates.logo = data.logo;
+  if (data.category !== undefined) updates.category = data.category;
+  if (data.industry !== undefined) updates.industry = data.industry;
+  if (data.gstin !== undefined) updates.gstin = data.gstin;
+  if (Object.keys(updates).length === 0) return;
+  await updateDoc(ref, updates as Record<string, import('firebase/firestore').FieldValue>);
 }
 
 /** Default logo when none provided */

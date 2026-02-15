@@ -33,6 +33,7 @@ import {
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { updateUserStatus } from '@/services/user-service';
 
 
 function exportToCsv(filename: string, rows: (string | number | Date)[][]) {
@@ -97,15 +98,26 @@ export function MerchantList({ initialMerchants, initialMerchantProfilesMap, ini
     const agentsMap = React.useMemo(() => new Map(Object.entries(initialAgentsMap)), [initialAgentsMap]);
     const [loading, setLoading] = React.useState(false);
 
-    const handleStatusChange = (userId: string, newStatus: User['status']) => {
-        setMerchants(prev =>
-        prev.map(m => (m.uid === userId ? { ...m, status: newStatus } : m))
-        );
-        // In a real app, you would also update the user's status in the database.
-        toast({
+    const handleStatusChange = async (userId: string, newStatus: User['status']) => {
+        setLoading(true);
+        try {
+          await updateUserStatus(userId, newStatus);
+          setMerchants((prev) =>
+            prev.map((m) => (m.uid === userId ? { ...m, status: newStatus } : m))
+          );
+          toast({
             title: 'Status Updated',
             description: `Merchant status has been changed to ${newStatus}.`,
-        });
+          });
+        } catch (e) {
+          toast({
+            variant: 'destructive',
+            title: 'Update failed',
+            description: e instanceof Error ? e.message : 'Could not update merchant status.',
+          });
+        } finally {
+          setLoading(false);
+        }
     };
 
     const handleExport = () => {

@@ -106,7 +106,7 @@ export default function MerchantDashboard() {
     );
   }
   
-  const { merchant, agent, merchantOffers } = data;
+  const { merchant, agent, merchantOffers, totalRedemptions } = data;
   const minWithdrawalThreshold = 555; // This would come from config
   const boostBalance = merchant.boostBalance || 0;
   const progress = (boostBalance / minWithdrawalThreshold) * 100;
@@ -152,9 +152,9 @@ export default function MerchantDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+1,234</div>
+            <div className="text-2xl font-bold">{totalRedemptions}</div>
             <p className="text-xs text-muted-foreground">
-              +10% from last month
+              Coupon/points redemptions at your stores
             </p>
           </CardContent>
         </Card>

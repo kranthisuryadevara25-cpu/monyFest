@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/auth';
 import { getUsersClient, getUserByIdClient } from '@/services/user-service.client';
+import { getMerchantsClient } from '@/services/merchant-service.client';
 import type { User } from '@/lib/types';
 
 
@@ -30,9 +31,13 @@ export default function ReferralsPage() {
         
         if (currentAgent && currentAgent.role === 'agent') {
             setAgent(currentAgent);
-            const allUsers = await getUsersClient();
-            setRecruitedMembers(allUsers.filter(u => u.role === 'member' && u.referredBy === currentAgent.uid));
-            setRecruitedMerchants(allUsers.filter(u => u.role === 'merchant' && u.referredBy === currentAgent.uid));
+            const [allUsers, allMerchants] = await Promise.all([getUsersClient(), getMerchantsClient()]);
+            setRecruitedMembers(allUsers.filter((u) => u.role === 'member' && u.referredBy === currentAgent.uid));
+            const linkedMerchantIds = new Set(allMerchants.filter((m) => m.linkedAgentId === currentAgent.uid).map((m) => m.merchantId));
+            const referred = allUsers.filter(
+                (u) => u.role === 'merchant' && (u.referredBy === currentAgent.uid || (u.merchantId && linkedMerchantIds.has(u.merchantId)) || linkedMerchantIds.has(u.uid))
+            );
+            setRecruitedMerchants(referred);
         }
         setLoading(false);
     }

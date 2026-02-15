@@ -11,34 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/lib/auth';
+import { getUserByIdClient } from '@/services/user-service.client';
+import { listVoiceOrdersByMerchantClient } from '@/services/voice-order-service.client';
+import { updateVoiceOrderStatus, updateVoiceOrderQuote } from '@/services/voice-order-service';
+import type { VoiceOrder, VoiceOrderStatus, VoiceOrderLineItem } from '@/services/voice-order-service';
 
-type OrderStatus = 'pending' | 'quote-sent' | 'paid' | 'out-for-delivery' | 'delivered' | 'rejected';
-
-type LineItem = {
-    id: string;
-    description: string;
-    quantity: number;
-    price: number; // in paise
-}
-
-type VoiceOrder = {
-    id: string;
-    customer: string;
-    orderText: string;
-    time: string;
-    status: OrderStatus;
-    lineItems?: LineItem[];
-    deliveryCharge?: number; // in paise
-    totalAmount?: number; // in paise
-}
-
-const initialVoiceOrders: VoiceOrder[] = [
-    { id: 'vo-01', customer: 'Ramu K.', orderText: 'One large coffee and two croissants', time: '2 minutes ago', status: 'pending' },
-    { id: 'vo-02', customer: 'Bharath G.', orderText: 'Two chicken burgers, no pickles', time: '15 minutes ago', status: 'quote-sent', totalAmount: 55000 },
-    { id: 'vo-03', customer: 'Shathrugna M.', orderText: 'A veggie pizza and a coke', time: '1 hour ago', status: 'paid', totalAmount: 85000 },
-    { id: 'vo-04', customer: 'Laxman S.', orderText: 'ரெண்டு மசாலா தோசை', time: '3 hours ago', status: 'delivered', totalAmount: 30000 },
-    { id: 'vo-05', customer: 'Agent Penelope', orderText: 'Order me something nice', time: '5 hours ago', status: 'rejected' },
-]
+type OrderStatus = VoiceOrderStatus;
+type LineItem = VoiceOrderLineItem;
 
 const StatusInfo = {
     pending: { icon: Clock, color: 'text-yellow-500', label: 'Pending' },
@@ -49,7 +30,7 @@ const StatusInfo = {
     rejected: { icon: X, color: 'text-red-500', label: 'Rejected' },
 }
 
-const QuoteDialog = ({ order, onSendQuote }: { order: VoiceOrder; onSendQuote: (orderId: string, lineItems: LineItem[], deliveryCharge: number) => void; }) => {
+const QuoteDialog = ({ order, onSendQuote }: { order: VoiceOrder; onSendQuote: (orderId: string, lineItems: LineItem[], deliveryCharge: number) => void }) => {
     const [lineItems, setLineItems] = React.useState<LineItem[]>([{ id: 'item-1', description: '', quantity: 1, price: 0 }]);
     const [deliveryCharge, setDeliveryCharge] = React.useState(0);
     const { toast } = useToast();
@@ -143,7 +124,7 @@ const OrderCard = ({ order, onStatusChange, onSendQuote }: { order: VoiceOrder, 
                         <p className="font-semibold text-lg">"{order.orderText}"</p>
                         <Badge variant={order.status === 'rejected' ? 'destructive' : 'secondary'}>{StatusInfo[order.status].label}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">From {order.customer} - {order.time}</p>
+                    <p className="text-sm text-muted-foreground">From {order.customer} — {formatDistanceToNow(order.createdAt, { addSuffix: true })}</p>
                     {order.totalAmount && <p className="font-bold text-lg">Total: ₹{(order.totalAmount / 100).toFixed(2)}</p>}
                     
                     <div className="flex items-center gap-2 pt-2">
@@ -174,22 +155,42 @@ const OrderCard = ({ order, onStatusChange, onSendQuote }: { order: VoiceOrder, 
 }
 
 export default function VoiceOrdersPage() {
-    const [orders, setOrders] = React.useState<VoiceOrder[]>(initialVoiceOrders);
+    const { user: authUser } = useAuth();
+    const [merchantId, setMerchantId] = React.useState<string | null>(null);
+    const [orders, setOrders] = React.useState<VoiceOrder[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    const handleStatusChange = (id: string, status: OrderStatus) => {
-        setOrders(orders.map(o => o.id === id ? {...o, status} : o));
+    const load = React.useCallback(async () => {
+        if (!authUser) return;
+        const user = await getUserByIdClient(authUser.uid);
+        const mid = user?.merchantId ?? authUser.uid;
+        setMerchantId(mid);
+        const list = await listVoiceOrdersByMerchantClient(mid);
+        setOrders(list);
+    }, [authUser]);
+
+    React.useEffect(() => {
+        load().finally(() => setLoading(false));
+    }, [load]);
+
+    const handleStatusChange = async (id: string, status: OrderStatus) => {
+        try {
+            await updateVoiceOrderStatus(id, status);
+            setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+        } catch (_) {}
     };
 
-    const handleSendQuote = (orderId: string, lineItems: LineItem[], deliveryCharge: number) => {
+    const handleSendQuote = async (orderId: string, lineItems: LineItem[], deliveryCharge: number) => {
         const totalAmount = lineItems.reduce((acc, item) => acc + item.quantity * item.price * 100, 0) + deliveryCharge * 100;
-        setOrders(orders.map(o => o.id === orderId ? {
-            ...o, 
-            status: 'quote-sent',
-            lineItems,
-            deliveryCharge,
-            totalAmount,
-        } : o));
-    }
+        try {
+            await updateVoiceOrderQuote(orderId, { lineItems, deliveryCharge, totalAmount, status: 'quote-sent' });
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o.id === orderId ? { ...o, status: 'quote-sent' as const, lineItems, deliveryCharge, totalAmount } : o
+                )
+            );
+        } catch (_) {}
+    };
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -203,13 +204,19 @@ export default function VoiceOrdersPage() {
             <div className="p-6 border-2 border-dashed rounded-lg flex flex-col items-center text-center">
                  <Mic className="h-12 w-12 text-primary" />
                  <h3 className="text-lg font-semibold mt-2">Listening for new voice orders...</h3>
-                 <p className="text-sm text-muted-foreground">New orders will appear here in real-time.</p>
+                 <p className="text-sm text-muted-foreground">New orders will appear here when received.</p>
             </div>
+            {loading ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Loading orders...</p>
+            ) : orders.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No voice orders yet.</p>
+            ) : (
             <div className="space-y-3">
-                {orders.map(order => (
+                {orders.map((order) => (
                     <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange} onSendQuote={handleSendQuote} />
                 ))}
             </div>
+            )}
         </CardContent>
       </Card>
     </main>

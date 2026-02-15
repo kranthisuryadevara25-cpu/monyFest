@@ -5,26 +5,33 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { mockUsers } from '@/lib/placeholder-data';
 import { FileDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { getTransactions } from '@/services/transaction-service';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, User } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
+import { getUserById } from '@/services/user-service';
+import { getUsersClient } from '@/services/user-service.client';
 
 export default function TransactionsPage() {
   const { user: authUser } = useAuth();
   const [merchantTransactions, setMerchantTransactions] = React.useState<Transaction[]>([]);
-  // In a real app, get the merchant's specific ID from their user profile
-  const merchantId = 'merchant-01'; 
+  const [users, setUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
-    if (authUser) {
-      getTransactions().then(allTransactions => {
-        setMerchantTransactions(allTransactions.filter(tx => tx.merchantId === merchantId));
-      });
-    }
+    if (!authUser) return;
+    const run = async () => {
+      const merchantUser = await getUserById(authUser.uid);
+      const merchantId = merchantUser?.merchantId ?? authUser.uid;
+      const [allTransactions, allUsers] = await Promise.all([
+        getTransactions(),
+        getUsersClient(),
+      ]);
+      setMerchantTransactions(allTransactions.filter((tx) => tx.merchantId === merchantId));
+      setUsers(allUsers);
+    };
+    run();
   }, [authUser]);
 
 
@@ -57,7 +64,7 @@ export default function TransactionsPage() {
             </TableHeader>
             <TableBody>
               {merchantTransactions.map(tx => {
-                 const customer = mockUsers.find(u => u.uid === tx.userId);
+                 const customer = users.find(u => u.uid === tx.userId);
                  const isCredit = tx.type === 'purchase';
                  return (
                   <TableRow key={tx.id}>

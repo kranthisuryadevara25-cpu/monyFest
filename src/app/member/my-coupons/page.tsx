@@ -109,11 +109,11 @@ const CouponCard = ({ coupon }: { coupon: UserCoupon }) => {
                 Present this QR code to the merchant to redeem your coupon.
               </DialogDescription>
             </DialogHeader>
-            <div className="flex items-center justify-center p-8">
-              {/* In a real app, this would generate a QR code from the userCouponId */}
-              <div className="bg-muted w-48 h-48 flex items-center justify-center">
-                <p>QR Placeholder</p>
-              </div>
+            <div className="flex flex-col items-center justify-center p-8 gap-4">
+              <p className="text-sm text-muted-foreground text-center">Redemption code — show or tell this to the merchant:</p>
+              <code className="bg-muted px-4 py-2 rounded font-mono text-sm break-all select-all" title="Tap to copy">
+                {coupon.userCouponId}
+              </code>
             </div>
           </DialogContent>
         </Dialog>

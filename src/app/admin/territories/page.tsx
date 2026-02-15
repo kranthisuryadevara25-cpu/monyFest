@@ -27,8 +27,8 @@ import {
   PlusCircle,
   Edit
 } from 'lucide-react';
-import { mockTerritories } from '@/lib/placeholder-data';
 import type { User, Territory } from '@/lib/types';
+import { listTerritories, createTerritory, updateTerritory, deleteTerritory } from '@/services/territory-service';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -148,38 +148,46 @@ const TerritoryFormDialog = ({
 
 export default function TerritoriesPage() {
     const { toast } = useToast();
-    const [territories, setTerritories] = React.useState(mockTerritories);
+    const [territories, setTerritories] = React.useState<Territory[]>([]);
     const [availableAgents, setAvailableAgents] = React.useState<User[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    const loadTerritories = React.useCallback(() => {
+        setLoading(true);
+        listTerritories().then(setTerritories).finally(() => setLoading(false));
+    }, []);
 
     React.useEffect(() => {
         getUsersClient('agent').then(setAvailableAgents);
-    }, [])
+        loadTerritories();
+    }, [loadTerritories]);
 
-    const handleSaveTerritory = (territory: Territory) => {
-        const isEditing = territories.some(t => t.id === territory.id);
-        if (isEditing) {
-            setTerritories(prev => prev.map(t => t.id === territory.id ? territory : t));
-             toast({
-                title: 'Territory Updated',
-                description: `Successfully updated the ${territory.name} territory.`
-            });
-        } else {
-            setTerritories(prev => [...prev, territory]);
-            toast({
-                title: 'Territory Added',
-                description: `Successfully created the ${territory.name} territory.`
-            });
+    const handleSaveTerritory = async (territory: Territory) => {
+        const isEditing = territories.some((t) => t.id === territory.id);
+        try {
+            if (isEditing) {
+                await updateTerritory(territory.id, { name: territory.name, pincodes: territory.pincodes, assignedAgentId: territory.assignedAgentId });
+                setTerritories((prev) => prev.map((t) => (t.id === territory.id ? territory : t)));
+                toast({ title: 'Territory Updated', description: `Successfully updated ${territory.name}.` });
+            } else {
+                const id = await createTerritory({ name: territory.name, pincodes: territory.pincodes, assignedAgentId: territory.assignedAgentId });
+                setTerritories((prev) => [...prev, { ...territory, id }]);
+                toast({ title: 'Territory Added', description: `Successfully created ${territory.name}.` });
+            }
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Error', description: e instanceof Error ? e.message : 'Failed to save territory.' });
         }
-    }
-    
-    const handleDeleteTerritory = (id: string) => {
-        setTerritories(prev => prev.filter(t => t.id !== id));
-        toast({
-            variant: 'destructive',
-            title: 'Territory Deleted',
-            description: 'The territory has been removed.'
-        });
-    }
+    };
+
+    const handleDeleteTerritory = async (id: string) => {
+        try {
+            await deleteTerritory(id);
+            setTerritories((prev) => prev.filter((t) => t.id !== id));
+            toast({ variant: 'destructive', title: 'Territory Deleted', description: 'The territory has been removed.' });
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Error', description: e instanceof Error ? e.message : 'Failed to delete territory.' });
+        }
+    };
 
 
   return (
@@ -212,7 +220,11 @@ export default function TerritoriesPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {territories.map(t => {
+                        {loading ? (
+                            <TableRow><TableCell colSpan={4} className="text-center py-8">Loading territories...</TableCell></TableRow>
+                        ) : territories.length === 0 ? (
+                            <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No territories yet. Add one to get started.</TableCell></TableRow>
+                        ) : territories.map(t => {
                             const agent = availableAgents.find(u => u.uid === t.assignedAgentId);
                             return (
                                 <TableRow key={t.id}>

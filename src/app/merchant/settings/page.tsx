@@ -19,8 +19,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/lib/auth';
 import type { User, Merchant } from '@/lib/types';
-import { getUserById } from '@/services/user-service';
-import { getMerchants } from '@/services/merchant-service';
+import { getUserById, updateUser } from '@/services/user-service';
+import { getMerchants, updateMerchant } from '@/services/merchant-service';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const businessTypes = ["Sole Proprietorship", "Partnership", "Private Limited", "LLP", "Other"];
@@ -102,15 +102,35 @@ export default function SettingsPage() {
   }
 
   const handleSave = async (section: string) => {
+    if (!merchantUser || !merchant) return;
     setIsSaving(true);
-    // In a real app, this would be an API call to update the merchant and user documents
-    console.log(`Saving ${section}:`, formState);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    toast({
+    try {
+      await Promise.all([
+        updateMerchant(merchant.merchantId, {
+          name: formState.businessName.trim() || merchant.name,
+          category: formState.category,
+          gstin: formState.gstin?.trim() || undefined,
+        }),
+        updateUser(merchantUser.uid, {
+          name: formState.ownerName.trim() || undefined,
+          phone: formState.phone?.trim() || undefined,
+        }),
+      ]);
+      setMerchant((m) => (m ? { ...m, name: formState.businessName.trim() || m.name, category: formState.category, gstin: formState.gstin || m.gstin } : null));
+      setMerchantUser((u) => (u ? { ...u, name: formState.ownerName.trim() || u.name, phone: formState.phone || u.phone } : null));
+      toast({
         title: 'Settings Saved',
-        description: `Your ${section} settings have been updated.`
-    });
+        description: `Your ${section} settings have been updated.`,
+      });
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Save failed',
+        description: e instanceof Error ? e.message : 'Could not save settings.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (loading) {

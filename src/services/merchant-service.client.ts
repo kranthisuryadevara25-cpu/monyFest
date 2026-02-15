@@ -1,6 +1,6 @@
 'use client';
 
-import { collection, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
 import type { Merchant } from '@/lib/types';
 
@@ -31,5 +31,18 @@ export async function getMerchantsClient(): Promise<Merchant[]> {
   } catch (error) {
     console.error('Error fetching merchants (client):', error);
     return [];
+  }
+}
+
+export async function getMerchantByIdClient(merchantId: string): Promise<Merchant | null> {
+  if (!isFirebaseConfigured) return null;
+  try {
+    const ref = doc(db, 'merchants', merchantId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return transformToMerchant({ ...snap.data(), merchantId: snap.id } as Record<string, unknown>);
+  } catch (error) {
+    console.error('Error fetching merchant (client):', error);
+    return null;
   }
 }

@@ -154,7 +154,7 @@ export async function getMerchantDashboardData(
     clientData?: { merchantUser: User | null; allUsers: User[]; allMerchants: Merchant[]; allOffers: Offer[]; allTransactions: Transaction[] }
 ): Promise<MerchantDashboardData> {
     if (!isFirebaseConfigured && !clientData) {
-        return { merchant: null, agent: null, merchantOffers: [], totalPayouts: 0 };
+        return { merchant: null, agent: null, merchantOffers: [], totalPayouts: 0, totalRedemptions: 0 };
     }
     let merchantUser: User | null;
     let allUsers: User[];
@@ -183,16 +183,20 @@ export async function getMerchantDashboardData(
     }
 
     if (!merchantUser || !merchantUser.merchantId) {
-        return { merchant: null, agent: null, merchantOffers: [], totalPayouts: 0 };
+        return { merchant: null, agent: null, merchantOffers: [], totalPayouts: 0, totalRedemptions: 0 };
     }
 
     const merchant = allMerchants.find(m => m.merchantId === merchantUser!.merchantId) || null;
     let agent: User | null = null;
     let merchantOffers: Offer[] = [];
+    let totalRedemptions = 0;
 
     if (merchant) {
         agent = allUsers.find(u => u.uid === merchant.linkedAgentId) || null;
         merchantOffers = allOffers.filter(o => o.merchantIds.includes(merchant.merchantId));
+        totalRedemptions = allTransactions.filter(
+            tx => (tx.type === 'points-redeemed' || tx.type === 'purchase') && tx.merchantId === merchant.merchantId
+        ).length;
     }
 
     const payouts = allTransactions.filter(tx => tx.type === 'payout' && tx.userId === userId);
@@ -204,7 +208,8 @@ export async function getMerchantDashboardData(
         agent,
         merchantOffers,
         lastPayout,
-        totalPayouts
+        totalPayouts,
+        totalRedemptions,
     };
 }
 

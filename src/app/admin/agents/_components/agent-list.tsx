@@ -33,6 +33,7 @@ import {
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { updateUserStatus } from '@/services/user-service';
 
 function exportToCsv(filename: string, rows: (string | number | Date)[][]) {
     const processRow = (row: (string | number | Date)[]) => {
@@ -94,16 +95,26 @@ export function AgentList({ initialAgents, referralCounts }: AgentListProps) {
   const [loading, setLoading] = React.useState(false);
 
 
-  const handleStatusChange = (userId: string, newStatus: User['status']) => {
-    setAgents((prev) =>
-      prev.map((agent) => (agent.uid === userId ? { ...agent, status: newStatus } : agent))
-    );
-     // In a real app, you would call a service to update the user status in the database here.
-     // e.g., await updateUserStatus(userId, newStatus);
-     toast({
+  const handleStatusChange = async (userId: string, newStatus: User['status']) => {
+    setLoading(true);
+    try {
+      await updateUserStatus(userId, newStatus);
+      setAgents((prev) =>
+        prev.map((agent) => (agent.uid === userId ? { ...agent, status: newStatus } : agent))
+      );
+      toast({
         title: 'Status Updated',
         description: `Agent has been ${newStatus}.`,
-    });
+      });
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Update failed',
+        description: e instanceof Error ? e.message : 'Could not update agent status.',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const handleExport = () => {

@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import type { Offer, Merchant, User } from '@/lib/types';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { getOffers } from '@/services/offer-service';
+import { getOffers, updateOfferStatus } from '@/services/offer-service';
 import { getMerchants } from '@/services/merchant-service';
 import { useAuth } from '@/lib/auth';
 import { getUserById } from '@/services/user-service';
@@ -45,13 +45,21 @@ export default function CouponsPage() {
         fetchData();
     }, [authUser]);
 
-    const handleArchive = (offerId: string) => {
-        // In a real app, this would update the offer's status to 'archived' or delete it.
-        setOffers(prev => prev.filter(o => o.offerId !== offerId));
-        toast({
-            title: 'Offer Archived',
-            description: 'The offer has been moved to the archive.',
-        });
+    const handleArchive = async (offerId: string) => {
+        try {
+            await updateOfferStatus(offerId, 'expired');
+            setOffers((prev) => prev.filter((o) => o.offerId !== offerId));
+            toast({
+                title: 'Offer Archived',
+                description: 'The offer has been expired and removed from active list.',
+            });
+        } catch (e) {
+            toast({
+                variant: 'destructive',
+                title: 'Archive failed',
+                description: e instanceof Error ? e.message : 'Could not archive offer.',
+            });
+        }
     }
   
   if (!merchant) {

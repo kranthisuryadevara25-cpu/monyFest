@@ -3,7 +3,7 @@
 
 import { doc, getDoc, setDoc, updateDoc, Timestamp, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '@/lib/firebase';
-import type { User, UserRole } from '@/lib/types';
+import type { User, UserRole, UserStatus } from '@/lib/types';
 import { createWelcomeCouponsForUser } from './user-coupon-service';
 import { getCommissionSettings } from './commission-service';
 import { createTransaction } from './transaction-service';
@@ -137,6 +137,15 @@ export async function updateUser(
     if (data.avatarUrl !== undefined) updates.avatarUrl = data.avatarUrl;
     if (Object.keys(updates).length <= 1) return;
     await updateDoc(ref, updates);
+}
+
+/**
+ * Updates a user's status (e.g. approved, rejected, deactivated). Used by admin for customers, agents, merchants.
+ */
+export async function updateUserStatus(uid: string, status: UserStatus): Promise<void> {
+    if (!isFirebaseConfigured) throw new Error('Firebase is not configured.');
+    const ref = doc(db, 'users', uid);
+    await updateDoc(ref, { status, updatedAt: Timestamp.now() });
 }
 
 /**
