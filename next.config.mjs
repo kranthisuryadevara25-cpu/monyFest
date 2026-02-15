@@ -41,7 +41,6 @@ const pwaConfig = withPWA({
       {
         urlPattern: /^https:\/\/(firestore|securetoken|identitytoolkit|www)\.googleapis\.com\/.*/,
         handler: "NetworkOnly",
-        options: { networkTimeoutSeconds: 10 },
       },
     ],
   },
