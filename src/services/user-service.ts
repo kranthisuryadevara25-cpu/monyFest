@@ -9,6 +9,7 @@ import { getCommissionSettings } from './commission-service';
 import { createTransaction } from './transaction-service';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
+import { SUPER_ADMIN_UID } from '@/lib/constants';
 
 // This is a type for the data needed to create a user, to keep it separate from Firebase Auth objects
 type UserCreationData = {
@@ -264,11 +265,15 @@ export async function getUserById(uid: string): Promise<User | null> {
         const docSnap = await getDoc(userDocRef);
 
         if (docSnap.exists()) {
-            return transformToUser(docSnap.data());
-        } else {
-            console.log(`No user found with uid: ${uid}`);
-            return null;
+            const user = transformToUser({ ...docSnap.data(), uid: docSnap.id });
+            if (user.uid === SUPER_ADMIN_UID) user.role = 'superAdmin';
+            return user;
         }
+        if (uid === SUPER_ADMIN_UID) {
+            return { uid, email: 'admin@monyfest.club', name: 'Super Admin', role: 'superAdmin' } as User;
+        }
+        console.log(`No user found with uid: ${uid}`);
+        return null;
     } catch (error) {
         console.error("Error fetching user:", error);
         return null;
