@@ -79,6 +79,7 @@ const bottomMenuItems = [
 export function MerchantSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user: authUser } = useAuth();
   const merchantUser = mockUsers.find((u) => u.role === 'merchant');
   const merchant = mockMerchants.find((m) => m.merchantId === 'merchant-01');
 
@@ -189,22 +190,22 @@ export function MerchantSidebar() {
           ))}
         </SidebarMenu>
 
-        {merchantUser && (
+        {authUser && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer">
                 <Avatar className="h-9 w-9">
                   <AvatarImage
-                    src={merchantUser.avatarUrl}
-                    alt={merchantUser.name}
+                    src={merchantUser?.avatarUrl ?? authUser.photoURL ?? ''}
+                    alt={merchantUser?.name ?? authUser.displayName ?? 'Merchant'}
                     data-ai-hint="person portrait"
                   />
-                  <AvatarFallback>{merchantUser.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{(merchantUser?.name ?? authUser.displayName ?? authUser.email ?? 'M').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-semibold">{merchant?.name}</span>
+                  <span className="text-sm font-semibold">{merchant?.name ?? merchantUser?.name ?? authUser.displayName ?? 'Merchant'}</span>
                   <span className="text-xs text-muted-foreground">
-                    {merchantUser.email}
+                    {merchantUser?.email ?? authUser.email ?? ''}
                   </span>
                 </div>
               </div>

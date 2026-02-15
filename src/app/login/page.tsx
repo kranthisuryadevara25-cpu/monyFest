@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { UserRole } from '@/lib/types';
 import { getUserById } from '@/services/user-service';
+import { SUPER_ADMIN_UID } from '@/lib/constants';
 import {
     Dialog,
     DialogContent,
@@ -113,7 +114,7 @@ function SignInForm() {
                     title: 'Login Successful',
                     description: `Welcome back!`,
                 });
-                if (appUser?.role === 'superAdmin') {
+                if (appUser?.role === 'superAdmin' || userCredential.uid === SUPER_ADMIN_UID) {
                     router.push('/admin/dashboard');
                 } else if (appUser?.role === 'agent') {
                     router.push('/agent/dashboard');
@@ -270,13 +271,20 @@ export default function LoginPage() {
     try {
       const user = await signInWithGoogle();
       if (user) {
+        const appUser = await getUserById(user.uid);
         toast({
           title: 'Login Successful',
-          description: `Welcome back, ${user.displayName}!`,
+          description: `Welcome back, ${user.displayName ?? appUser?.name ?? '!'}`,
         });
-        // In a real app, you might check the user's role from your DB and route accordingly.
-        // For now, we default to the member homepage.
-        router.push('/member/homepage');
+        if (appUser?.role === 'superAdmin' || user.uid === SUPER_ADMIN_UID) {
+          router.push('/admin/dashboard');
+        } else if (appUser?.role === 'agent') {
+          router.push('/agent/dashboard');
+        } else if (appUser?.role === 'merchant') {
+          router.push('/merchant/dashboard');
+        } else {
+          router.push('/member/homepage');
+        }
       }
     } catch (error: any) {
       const isFirebaseSetup = error?.message === FIREBASE_NOT_CONFIGURED_MSG;

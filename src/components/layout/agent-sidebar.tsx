@@ -142,18 +142,18 @@ export function AgentSidebar() {
           ))}
         </SidebarMenu>
         
-        {agent && (
+        {authUser && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={agent.avatarUrl} alt={agent.name} data-ai-hint="person portrait" />
-                  <AvatarFallback>{agent.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={agent?.avatarUrl ?? authUser.photoURL ?? ''} alt={agent?.name ?? authUser.displayName ?? 'User'} data-ai-hint="person portrait" />
+                  <AvatarFallback>{(agent?.name ?? authUser.displayName ?? authUser.email ?? 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-semibold">{agent.name}</span>
+                  <span className="text-sm font-semibold">{agent?.name ?? authUser.displayName ?? 'User'}</span>
                   <span className="text-xs text-muted-foreground">
-                    {agent.email}
+                    {agent?.email ?? authUser.email ?? ''}
                   </span>
                 </div>
               </div>

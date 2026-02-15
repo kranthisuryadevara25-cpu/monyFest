@@ -158,18 +158,18 @@ export function MemberSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        {member && (
+        {authUser && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 p-2 rounded-md hover:bg-muted cursor-pointer">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
-                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={member?.avatarUrl ?? authUser.photoURL ?? ''} alt={member?.name ?? authUser.displayName ?? 'User'} data-ai-hint="person portrait" />
+                  <AvatarFallback>{(member?.name ?? authUser.displayName ?? authUser.email ?? 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-semibold">{member.name}</span>
+                  <span className="text-sm font-semibold">{member?.name ?? authUser.displayName ?? 'User'}</span>
                   <span className="text-xs text-muted-foreground">
-                    {member.email}
+                    {member?.email ?? authUser.email ?? ''}
                   </span>
                 </div>
               </div>
