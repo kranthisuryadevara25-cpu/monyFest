@@ -26,6 +26,25 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    // Don't let the service worker handle Firebase/Google API URLs (avoids CORS/no-response errors)
+    navigateFallbackDenylist: [
+      /^https:\/\/firestore\.googleapis\.com\/.*/,
+      /^https:\/\/securetoken\.googleapis\.com\/.*/,
+      /^https:\/\/identitytoolkit\.googleapis\.com\/.*/,
+      /^https:\/\/www\.googleapis\.com\/.*/,
+      /^https:\/\/[\w-]+\.googleapis\.com\/.*/,
+    ],
+    // Pass Firebase requests through to the network only (no caching)
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/(firestore|securetoken|identitytoolkit|www)\.googleapis\.com\/.*/,
+        handler: "NetworkOnly",
+        options: { networkTimeoutSeconds: 10 },
+      },
+    ],
+  },
 });
 
 export default pwaConfig(nextConfig);
