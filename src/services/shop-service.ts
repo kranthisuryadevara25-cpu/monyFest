@@ -51,7 +51,7 @@ export async function createShop(shop: Omit<Shop, 'id'>): Promise<string> {
 export async function updateShop(id: string, data: Partial<Omit<Shop, 'id' | 'merchantId'>>): Promise<void> {
   if (!isFirebaseConfigured) throw new Error('Firebase is not configured.');
   const ref = doc(db, COLLECTION, id);
-  const updates: Record<string, unknown> = {};
+  const updates: Record<string, string> = {};
   if (data.name !== undefined) updates.name = data.name;
   if (data.address !== undefined) updates.address = data.address;
   if (data.pincode !== undefined) updates.pincode = data.pincode;

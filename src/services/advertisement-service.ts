@@ -54,13 +54,13 @@ export async function createAdvertisement(ad: Omit<Advertisement, 'id' | 'create
 export async function updateAdvertisement(id: string, data: Partial<Omit<Advertisement, 'id' | 'createdAt'>>): Promise<void> {
   if (!isFirebaseConfigured) throw new Error('Firebase is not configured.');
   const ref = doc(db, COLLECTION, id);
-  const updates: Record<string, unknown> = {};
+  const updates: Record<string, string | null> = {};
   if (data.title !== undefined) updates.title = data.title;
   if (data.type !== undefined) updates.type = data.type;
   if (data.content !== undefined) updates.content = data.content;
   if (data.link !== undefined) updates.link = data.link;
   if (data.status !== undefined) updates.status = data.status;
-  if (data.targetLocation !== undefined) updates.targetLocation = data.targetLocation;
+  if (data.targetLocation !== undefined) updates.targetLocation = data.targetLocation ?? null;
   if (Object.keys(updates).length === 0) return;
   await updateDoc(ref, updates);
 }

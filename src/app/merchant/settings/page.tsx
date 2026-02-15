@@ -108,7 +108,7 @@ export default function SettingsPage() {
       await Promise.all([
         updateMerchant(merchant.merchantId, {
           name: formState.businessName.trim() || merchant.name,
-          category: formState.category,
+          category: formState.category as Merchant['category'],
           gstin: formState.gstin?.trim() || undefined,
         }),
         updateUser(merchantUser.uid, {
@@ -116,7 +116,7 @@ export default function SettingsPage() {
           phone: formState.phone?.trim() || undefined,
         }),
       ]);
-      setMerchant((m) => (m ? { ...m, name: formState.businessName.trim() || m.name, category: formState.category, gstin: formState.gstin || m.gstin } : null));
+      setMerchant((m) => (m ? { ...m, name: formState.businessName.trim() || m.name, category: formState.category as Merchant['category'], gstin: formState.gstin || m.gstin } : null));
       setMerchantUser((u) => (u ? { ...u, name: formState.ownerName.trim() || u.name, phone: formState.phone || u.phone } : null));
       toast({
         title: 'Settings Saved',

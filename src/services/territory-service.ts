@@ -55,7 +55,7 @@ export async function createTerritory(territory: Omit<Territory, 'id'>): Promise
 export async function updateTerritory(id: string, data: Partial<Omit<Territory, 'id'>>): Promise<void> {
   if (!isFirebaseConfigured) throw new Error('Firebase is not configured.');
   const ref = doc(db, COLLECTION, id);
-  const updates: Record<string, unknown> = {};
+  const updates: Record<string, string | string[]> = {};
   if (data.name !== undefined) updates.name = data.name;
   if (data.pincodes !== undefined) updates.pincodes = data.pincodes;
   if (data.assignedAgentId !== undefined) updates.assignedAgentId = data.assignedAgentId;
