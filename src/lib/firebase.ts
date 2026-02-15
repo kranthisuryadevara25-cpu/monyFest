@@ -29,14 +29,26 @@ const config = hasFirebaseConfig
       appId: '1:000:web:000',
     };
 
-let firebaseApp: FirebaseApp;
-if (getApps().length === 0) {
-  firebaseApp = initializeApp(config);
-} else {
-  firebaseApp = getApp();
+let firebaseApp: FirebaseApp | null = null;
+let _auth: Auth | null = null;
+let _db: Firestore | null = null;
+
+try {
+  if (getApps().length === 0) {
+    firebaseApp = initializeApp(config);
+  } else {
+    firebaseApp = getApp() as FirebaseApp;
+  }
+  if (firebaseApp) {
+    _auth = getAuth(firebaseApp);
+    _db = getFirestore(firebaseApp);
+  }
+} catch (err) {
+  console.error('[Firebase] Initialization failed:', err);
 }
 
-export const auth: Auth = getAuth(firebaseApp);
-export const db: Firestore = getFirestore(firebaseApp);
-export const isFirebaseConfigured = hasFirebaseConfig;
-export default firebaseApp;
+export const auth: Auth | null = _auth;
+// When isFirebaseConfigured is false, callers must not use db; cast so existing guards don't need changing
+export const db = _db as Firestore;
+export const isFirebaseConfigured = hasFirebaseConfig && _auth != null;
+export default firebaseApp as FirebaseApp;

@@ -19,6 +19,11 @@ const nextConfig = {
     experimental: {
         optimizePackageImports: ['firebase/auth', 'firebase/app', 'firebase/firestore'],
     },
+    webpack: (config, { dev }) => {
+        // Increase chunk load timeout to avoid ChunkLoadError on slow dev or after rebuilds
+        if (config.output) config.output.chunkLoadTimeout = 120000;
+        return config;
+    },
 };
 
 const pwaConfig = withPWA({
@@ -40,6 +45,11 @@ const pwaConfig = withPWA({
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/(firestore|securetoken|identitytoolkit|www)\.googleapis\.com\/.*/,
+        handler: "NetworkOnly",
+      },
+      // Never cache Next.js chunks — always fetch from network to avoid ChunkLoadError after new builds
+      {
+        urlPattern: /\/_next\/static\/.*/,
         handler: "NetworkOnly",
       },
     ],
